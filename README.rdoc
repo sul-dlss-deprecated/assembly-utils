@@ -1,0 +1,11 @@
+= Assembly Utils Gem
+
+==Overview 
+Ruby gem of methods usesful for assembly and accessioning. Contains classes to manipulate DOR objects for assembly and accessioning}
+
+==Releases
+
+- 1.0.0 initial release
+
+==Notes
+
