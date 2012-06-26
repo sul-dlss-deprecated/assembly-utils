@@ -5,6 +5,11 @@ module Assembly
 
   class Utils
     
+    def self.get_staging_path(pid,base_path='')
+      d=DruidTools::Druid.new(pid,base_path)
+      File.dirname(d.path)
+    end
+    
     # get a list of druids that match the given array of source_ids
     def self.get_druids_by_sourceid(source_ids)
       druids=[]
