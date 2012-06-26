@@ -3,20 +3,50 @@ require 'csv'
 
 module Assembly
 
+  # The Utils class contains methods to help with accessioning and assembly
   class Utils
-    
+
+    # Get the staging directory tree given a druid, and optionally prepend a basepath.
+    #
+    # @param [String] pid druid pid (e.g. 'aa000aa0001')
+    # @param [String] base_path optional base path to prepend to druid path
+    #
+    # @return [string] path to material that is being staged, with optional prepended base path
+    #
+    # Example:
+    #   puts Assembly::Utils.get_staging_path('aa000aa0001','tmp')
+    #   > "tmp/aa/000/aa/0001"
     def self.get_staging_path(pid,base_path='')
       d=DruidTools::Druid.new(pid,base_path)
-      File.dirname(d.path)
+      path=File.dirname(d.path)
+      path.slice!(0) if path[0]==47 # remove first / if it exists
+      return path
     end
-    
-    # get a list of druids that match the given array of source_ids
+  
+    # Get a list of druids that match the given array of source IDs.  
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [String] source_ids array of source ids to lookup
+    #
+    # @return [array] druids
+    # Example:
+    #
+    #   puts Assembly::Utils.get_druids_by_sourceid(['revs-01','revs-02'])
+    #   > ['druid:aa000aa0001','druid:aa000aa0002']
     def self.get_druids_by_sourceid(source_ids)
       druids=[]
       source_ids.each {|sid| druids  <<  Dor::SearchService.query_by_id(sid)}
       druids.flatten
     end
-    
+
+    # Tells you the status of the assembly and accessioning robots on the server the command is run on.
+    #
+    # @return [string] output to let you know if robots are running
+    #
+    # Example:
+    #   puts Assembly::Utils.robot_status
+    #   > Accession robots are NOT running
+    #   > Assembly robots are NOT running   
     def self.robot_status
     
       accession_robots="ps -ef | grep accessionWF | wc -l"
@@ -25,7 +55,16 @@ module Assembly
       puts "Assembly robots are " +  (`#{assembly_robots}`.strip.to_i > 2 ? "running" : "NOT running")
 
     end
-    
+
+    # Tells you the commands you need to execute on a unix prompt to actually start the assembly and accession robots.
+    # Does NOT execute the commands themselves.
+    #
+    # @return [string] output to let you know how to start robots
+    #
+    # Example:
+    #   puts Assembly::Utils.start_robots
+    #   > cd /home/lyberadmin/common-accessioning/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start accessionWF:content-metadata accessionWF:descriptive-metadata accessionWF:rights-metadata accessionWF:remediate-object accessionWF:publish accessionWF:shelve accessionWF:provenance-metadata accessionWF:cleanup
+    #   > cd /home/lyberadmin/assembly/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start assemblyWF:jp2-create assemblyWF:checksum-compute assemblyWF:exif-collect assemblyWF:accessioning-initiate
     def self.start_robots
             
       accession_robots="cd /home/lyberadmin/common-accessioning/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start accessionWF:content-metadata accessionWF:descriptive-metadata accessionWF:rights-metadata accessionWF:remediate-object accessionWF:publish accessionWF:shelve accessionWF:provenance-metadata accessionWF:cleanup"
@@ -36,7 +75,19 @@ module Assembly
       puts "#{assembly_robots}" 
 
     end
-    
+ 
+    # Show the workflow status of specific steps in assembly and/or accession workflows for the provided druids.  
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [Hash] params parameters specified as a hash, using symbols for options:
+    #   * :druids => array of druids to get workflow status for
+    #   * :workflows => an optional array of workflow names as symbols, options are :assembly and :accession; defaults to :assembly
+    #   * :filename =>  optional filename if you want to send output to a CSV
+    #
+    # @return [string] comma delimited output or CSV file
+    #
+    # Example:
+    #   Assembly::Utils.workflow_status(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:workflows=>[:assembly,:accession],:filename=>'output.csv')
     def self.workflow_status(params={})
 
       druids=params[:druids] || []
@@ -44,7 +95,7 @@ module Assembly
       filename=params[:filename] || ''
 
       accession_steps = %w(content-metadata	descriptive-metadata rights-metadata shelve publish)
-      assembly_steps = Dor::Config.assembly.assembly_wf_steps.map { |s| s[0] }
+      assembly_steps = Assembly::ASSEMBLY_WF_STEPS.map { |s| s[0] }
 
       puts "Generating report"
 
@@ -70,7 +121,19 @@ module Assembly
       end
 
     end
-    
+
+    # Show the workflow status of a specific step in a specific workflow for the provided druid.  
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [string] druid a druid string
+    # @param [string] workflow name of workflow
+    # @param [string] step name of step
+    #
+    # @return [string] workflow step status
+    #
+    # Example:
+    #   puts Assembly::Utils.get_workflow_status('druid:aa000aa0001','assemblyWF','jp2-create')
+    #   > "completed"
     def self.get_workflow_status(druid,workflow,step)
       begin
         result=Dor::WorkflowService.get_workflow_status('dor', druid, workflow, step)  
@@ -80,9 +143,21 @@ module Assembly
       return result
     end
     
-    ####
-     # Cleanup of objects and associated files in specified environment given a list of druids
-     ####
+     # Cleanup a list of objects and associated files given a list of druids.  WARNING: VERY DESTRUCTIVE. 
+     # This method only works when this gem is used in a project that is configured to connect to DOR
+     #
+     # @param [Hash] params parameters specified as a hash, using symbols for options:
+     #   * :druids => array of druids to cleanup
+     #   * :steps => an array of steps, specified as symbols, indicating steps to be run, options are:
+     #                :stacks=This will remove all files from the stacks that were shelved for the objects
+     #                :dor=This will delete objects from Fedora
+     #                :stage=This will delete the staged content in the assembly workspace
+     #                :symlinks=This will remove the symlink from the dor workspace
+     #
+     #   * :dry_run =>  do not actually clean up (defaults to false)
+     #
+     # Example:
+     #   Assembly::Utils.cleanup(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:steps=>[:stacks,:dor,:stage,:symlinks])
      def self.cleanup(params={})
        
        druids=params[:druids] || []
@@ -91,8 +166,8 @@ module Assembly
        
        allowed_steps={:stacks=>'This will remove all files from the stacks that were shelved for the objects',
                       :dor=>'This will delete objects from Fedora',
-                      :stage=>"This will delete the staged content in #{Dor::Config.assembly.assembly_workspace}",
-                      :symlinks=>"This will remove the symlink from #{Dor::Config.assembly.dor_workspace}"}
+                      :stage=>"This will delete the staged content in #{Assembly::ASSEMBLY_WORKSPACE}",
+                      :symlinks=>"This will remove the symlink from #{Assembly::DOR_WORKSPACE}"}
 
        num_steps=0
 
@@ -114,7 +189,20 @@ module Assembly
        druids.each {|pid| Assembly::Utils.cleanup_object(pid,steps,dry_run)}
 
     end
-     
+
+    # Cleanup a single objects and associated files given a druid.  WARNING: VERY DESTRUCTIVE. 
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [string] pid a druid
+    # @param [array] steps an array of steps, options below 
+    #                :stacks=This will remove all files from the stacks that were shelved for the objects
+    #                :dor=This will delete objects from Fedora
+    #                :stage=This will delete the staged content in the assembly workspace
+    #                :symlinks=This will remove the symlink from the dor workspace
+    # @param [boolean] dry_run do not actually clean up (defaults to false)
+    #
+    # Example:
+    #   Assembly::Utils.cleanup_object('druid:aa000aa0001',[:stacks,:dor,:stage,:symlinks])
     def self.cleanup_object(pid,steps,dry_run=false)
       case ENV['ROBOT_ENVIRONMENT']
         when "test"
@@ -135,12 +223,12 @@ module Assembly
            Assembly::Utils.unregister(pid) unless dry_run
          end
          if steps.include?(:symlinks)
-           path_to_symlink=File.join(Dor::Config.assembly.dor_workspace,druid_tree)
+           path_to_symlink=File.join(Assembly::DOR_WORKSPACE,druid_tree)
            puts "-- deleting symlink #{path_to_symlink}"
            File.delete(path_to_symlink) if !dry_run && File.exists?(path_to_symlink)
          end
          if steps.include?(:stage)
-           path_to_content=File.join(Dor::Config.assembly.assembly_workspace,druid_tree)
+           path_to_content=File.join(Assembly::ASSEMBLY_WORKSPACE,druid_tree)
            puts "-- deleting folder #{path_to_content}"
            FileUtils.rm_rf path_to_content if !dry_run && File.exists?(path_to_content)
          end
@@ -155,7 +243,13 @@ module Assembly
        ssh_session.close if ssh_session
     end
     
-    
+    # Delete an object from DOR.
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [string] pid the druid 
+    #
+    # Example:
+    #   Assembly::Utils.delete_from_dor('druid:aa000aa0001')
     def self.delete_from_dor(pid)
       
       Dor::Config.fedora.client["objects/#{pid}"].delete
@@ -205,7 +299,7 @@ module Assembly
       
       begin
         # Set all assemblyWF steps to error.
-        steps = Dor::Config.assembly.assembly_wf_steps
+        steps = Assembly::ASSEMBLY_WF_STEPS
         steps.each { |step, status|  Assembly::Utils.set_workflow_step_to_error pid, step }
 
         # Delete object from Dor.
@@ -218,7 +312,7 @@ module Assembly
     end
 
     def self.set_workflow_step_to_error(pid, step)
-      wf_name = Dor::Config.assembly.assembly_wf
+      wf_name = Assembly::ASSEMBLY_WF
       msg     = 'Integration testing'
       params  =  ['dor', pid, wf_name, step, msg]
       resp    = Dor::WorkflowService.update_workflow_error_status *params
@@ -230,7 +324,7 @@ module Assembly
       wf        = 'assemblyWF'
       msg       = 'Integration testing'
       wfs       = Dor::WorkflowService
-      steps     = Dor::Config.assembly.assembly_wf_steps.map { |s| s[0] }
+      steps     = Assembly::ASSEMBLY_WF_STEPS.map { |s| s[0] }
       completed = steps[0]
 
       steps.each do |waiting|
@@ -313,7 +407,7 @@ module Assembly
 		
 	    purl_link = ""
 	    val = druid.split(/:/).last
-	    purl_link = File.join(Dor::Config.purl.base_url, val)
+	    purl_link = File.join(Assembly::PURL_BASE_URL, val)
       
       return  [druid, label, title, source_id, accessioned, shelved, purl_link, num_files,file_type_list]   
        

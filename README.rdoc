@@ -9,6 +9,7 @@ Ruby gem of methods usesful for assembly and accessioning. Contains classes to m
 - 1.0.1 bug fixes
 - 1.0.2 more bug fixes to use the new druid-tools namespace
 - 1.0.3 add a method to compute staging paths based on changes to Druid gem path computations
+- 1.0.4 add some tests and document methods
 
 ==Notes
 
