@@ -6,6 +6,8 @@ Ruby gem of methods usesful for assembly and accessioning. Contains classes to m
 ==Releases
 
 - 1.0.0 initial release
+- 1.0.1 bug fixes
+- 1.0.2 more bug fixes to use the new druid-tools namespace
 
 ==Notes
 

@@ -93,12 +93,12 @@ module Assembly
 
        puts 'THIS IS A DRY RUN' if dry_run
 
-       PreAssembly::Utils.confirm "Run on '#{ENV['ROBOT_ENVIRONMENT']}'? Any response other than 'y' or 'yes' will stop the cleanup now." 
-       PreAssembly::Utils.confirm "Are you really sure you want to run on production?  CLEANUP IS NOT REVERSIBLE" if ENV['ROBOT_ENVIRONMENT'] == 'production'
+       Assembly::Utils.confirm "Run on '#{ENV['ROBOT_ENVIRONMENT']}'? Any response other than 'y' or 'yes' will stop the cleanup now." 
+       Assembly::Utils.confirm "Are you really sure you want to run on production?  CLEANUP IS NOT REVERSIBLE" if ENV['ROBOT_ENVIRONMENT'] == 'production'
 
        steps.each do |step|
          if allowed_steps.keys.include?(step)
-           PreAssembly::Utils.confirm "Run step '#{step}'?  #{allowed_steps[step]}.  Any response other than 'y' or 'yes' will stop the cleanup now."
+           Assembly::Utils.confirm "Run step '#{step}'?  #{allowed_steps[step]}.  Any response other than 'y' or 'yes' will stop the cleanup now."
            num_steps+=1 # count the valid steps found and agreed to
          end
        end
@@ -106,7 +106,7 @@ module Assembly
        raise "no valid steps specified for cleanup" if num_steps == 0
        raise "no druids provided" if druids.size == 0
        
-       druids.each {|pid| PreAssembly::Utils.cleanup_object(pid,steps,dry_run)}
+       druids.each {|pid| Assembly::Utils.cleanup_object(pid,steps,dry_run)}
 
     end
      
@@ -123,11 +123,11 @@ module Assembly
          # start up an SSH session if we are going to try and remove content from the stacks
          ssh_session=Net::SSH.start(stacks_server,'lyberadmin') if steps.include?(:stacks) && defined?(stacks_server)
         
-         druid_tree=Druid.new(pid).tree
+         druid_tree=DruidTools::Druid.new(pid).tree
          puts "Cleaning up #{pid}"
          if steps.include?(:dor)
            puts "-- deleting #{pid} from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
-           PreAssembly::Utils.unregister(pid) unless dry_run
+           Assembly::Utils.unregister(pid) unless dry_run
          end
          if steps.include?(:symlinks)
            path_to_symlink=File.join(Dor::Config.assembly.dor_workspace,druid_tree)
@@ -201,10 +201,10 @@ module Assembly
       begin
         # Set all assemblyWF steps to error.
         steps = Dor::Config.assembly.assembly_wf_steps
-        steps.each { |step, status|  PreAssembly::Utils.set_workflow_step_to_error pid, step }
+        steps.each { |step, status|  Assembly::Utils.set_workflow_step_to_error pid, step }
 
         # Delete object from Dor.
-        PreAssembly::Utils.delete_from_dor pid
+        Assembly::Utils.delete_from_dor pid
         return true
       rescue
         return false
@@ -258,12 +258,12 @@ module Assembly
     
     def self.get_druids_from_log(progress_log_file,completed=true)
        druids=[]
-       YAML.each_document(PreAssembly::Utils.read_file(progress_log_file)) { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}  
+       YAML.each_document(Assembly::Utils.read_file(progress_log_file)) { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}  
        return druids
     end
     
     def self.load_config(filename)
-      YAML.load(PreAssembly::Utils.read_file(filename))  
+      YAML.load(Assembly::Utils.read_file(filename))  
     end
     
     def self.read_file(filename)
