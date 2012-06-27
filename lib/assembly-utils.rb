@@ -1,15 +1,24 @@
 module Assembly
     
+    # Base PURL URL
     PURL_BASE_URL='http://purl.stanford.edu'
     
+    # Default content metadata file present at root of each object directory
     CONTENT_MD_FILE='contentMetadata.xml'
+
+    # Default descriptive metadata file present at root of each object directory
     DESC_MD_FILE='descMetadata.xml'
 
-     # Defaut workspace and assembly areas, used in cleanup
+     # Defaut DOR workspace directory
      DOR_WORKSPACE='/dor/workspace'
-     ASSEMBLY_WORKSPACE='/dor/assembly'  # can be overwritten by the value set in the project specific YAML configuration
+     
+     # Default assembly directory, can be overwritten by the value set in the project specific YAML configuration
+     ASSEMBLY_WORKSPACE='/dor/assembly'
 
+     # Assembly workflow name
      ASSEMBLY_WF='assemblyWF'
+     
+     # Assembly workflow steps, used for cleanup
      ASSEMBLY_WF_STEPS=[
        [ 'start-assembly',        'completed' ],
        [ 'jp2-create',            'waiting'   ],

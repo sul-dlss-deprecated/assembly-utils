@@ -19,7 +19,7 @@ module Assembly
     def self.get_staging_path(pid,base_path='')
       d=DruidTools::Druid.new(pid,base_path)
       path=File.dirname(d.path)
-      path.slice!(0) if path[0]==47 # remove first / if it exists
+      path.slice!(0) if base_path=='' && path[0]==47 # remove first / if base_path is empty
       return path
     end
   
@@ -256,14 +256,32 @@ module Assembly
   
     end
     
-    # quicky update rights metadata for any existing objects using default rights metadata pulled from the supplied APO
+    # Quicky update rights metadata for any existing list of objects using default rights metadata pulled from the supplied APO
+    #
+    # @param [array] druids - an array of druids
+    # @param [string] apo_druid - the druid of the APO to pull rights metadata from
+    #        
+    # Example:
+    #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
+    #   apo_druid='druid:cc222cc2222'
+    #   Assembly::Utils.update_rights_metadata(druids,apo_druid)    
     def self.update_rights_metadata(druids,apo_druid)
       apo = Dor::Item.find(apo_druid)
       rights_md = apo.datastreams['defaultObjectRights']
       self.replace_datastreams(druids,'rightsMetadata',rights_md.content)
     end
     
-    # replace a specific datastream for a series of objects in DOR with new content 
+    # Replace a specific datastream for a series of objects in DOR with new content 
+    #
+    # @param [array] druids - an array of druids
+    # @param [string] datastream_name - the name of the datastream to replace
+    # @param [string] new_content - the new content to replace the entire datastream with
+    #
+    # Example:
+    #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
+    #   new_content='<xml><more nodes>this should be the whole datastream</more nodes></xml>'
+    #   datastream='rightsMetadata'
+    #   Assembly::Utils.replace_datastreams(druids,datastream,new_content)
     def self.replace_datastreams(druids,datastream_name,new_content)
       druids.each do |druid|
         obj = Dor::Item.find(druid)
@@ -278,7 +296,19 @@ module Assembly
       end 
     end    
 
-    # update a specific datastream for a series of objects in DOR by searching and replacing content 
+    # Update a specific datastream for a series of objects in DOR by searching and replacing content 
+    #
+    # @param [array] druids - an array of druids
+    # @param [string] datastream_name - the name of the datastream to replace
+    # @param [string] find_content - the content to find
+    # @param [string] replace_content - the content to replace the found content with
+    #  
+    # Example:
+    #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
+    #   find_content='FooBarBaz'
+    #   replace_content='Stanford Rules'
+    #   datastream='rightsMetadata'
+    #   Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
     def self.update_datastreams(druids,datastream_name,find_content,replace_content)
       druids.each do |druid|
         obj = Dor::Item.find(druid)
@@ -294,7 +324,9 @@ module Assembly
       end 
     end    
 
-    
+    # Unregister a DOR object, which includes deleting it and setting all workflow assembly steps to an error state
+    #
+    # @param [string] pid of druid
     def self.unregister(pid)
       
       begin
@@ -311,6 +343,11 @@ module Assembly
       
     end
 
+    # Set the workflow step for the given PID to an error state
+    #
+    # @param [string] pid of druid
+    # @param [string] step to set to error
+    #
     def self.set_workflow_step_to_error(pid, step)
       wf_name = Assembly::ASSEMBLY_WF
       msg     = 'Integration testing'
@@ -319,6 +356,8 @@ module Assembly
       raise "update_workflow_error_status() returned false." unless resp == true
     end
 
+    # Clear stray workflows - remove any workflow steps for orphaned objects.
+    # This method only works when this gem is used in a project that is configured to connect to DOR
     def self.clear_stray_workflows
       repo      = 'dor'
       wf        = 'assemblyWF'
@@ -336,7 +375,20 @@ module Assembly
         end
       end  
     end
-    
+
+    # Reset the workflow states for a list of druids given a list of workflow names and steps.
+    # Provide a list of druids in an array, and a hash containing workflow names (e.g. 'assemblyWF' or 'accessionWF') as the keys, and arrays of steps
+    # as the corresponding values (e.g. ['checksum-compute','jp2-create']) and they will all be reset to "waiting".
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [Hash] params parameters specified as a hash, using symbols for options:
+    #   * :druids => array of druids
+    #   * :steps => a hash, containing workflow names as keys, and an array of steps
+    #
+    # Example:
+    #   druids=['druid:aa111aa1111','druid:bb222bb2222']
+    #   steps={'assemblyWF'  => ['checksum-compute'],'accessionWF' => ['content-metadata','descriptive-metadata']}
+    #   Assembly::Utils.reset_workflow_states(:druids=>druids,:steps=>steps)
     def self.reset_workflow_states(params={})
       druids=params[:druids] || []
       steps=params[:steps] || {}
@@ -354,28 +406,54 @@ module Assembly
       	end
       end
     end
-    
+
+    # Read in a list of druids from a pre-assembly progress load file and load into an array.
+    #
+    # @param [string] progress_log_file filename
+    # @param [boolean] completed if true, returns druids that have completed, if false, returns druids that failed (defaults to true)
+    #
+    # @return [array] list of druids
+    #
+    # Example:    
+    #   druids=Assembly::Utils.get_druids_from_log('/dor/preassembly/sohp_accession_log.yaml')
+    #   puts druids
+    #   > ['aa000aa0001','aa000aa0002']
     def self.get_druids_from_log(progress_log_file,completed=true)
        druids=[]
        YAML.each_document(Assembly::Utils.read_file(progress_log_file)) { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}  
        return druids
     end
-    
+
+    # Read in a YAML configuration file from disk and return a hash
+    #
+    # @param [string] filename of YAML config file to read
+    #
+    # @return [hash] configuration contents as a hash
+    #
+    # Example:
+    #   config_filename='/thumpers/dpgthumper2-smpl/SC1017_SOHP/sohp_prod_accession.yaml'
+    #   config=Assembly::Utils.load_config(config_filename)   
+    #   puts config['progress_log_file']
+    #   > "/dor/preassembly/sohp_accession_log.yaml" 
     def self.load_config(filename)
       YAML.load(Assembly::Utils.read_file(filename))  
     end
-    
+
+    # Read in a file from disk
+    #
+    # @param [string] filename to read
+    #
+    # @return [string] file contents as a string
     def self.read_file(filename)
-      return File.file?(filename) ? IO.read(filename) : ''
-    end
-        
-    def self.confirm(message)
-      puts message
-      response=gets.chomp.downcase
-      raise "Exiting" if response != 'y' && response != 'yes'
+      return File.readable?(filename) ? IO.read(filename) : ''
     end
 
-    # used by the completion_report and project_tag_report in the bin directory
+    # Used by the completion_report and project_tag_report in the pre-assembly project 
+    #
+    # @param [solr_document] doc a solr document result
+    # @param [boolean] check_status_in_dor indicates if we should check for the workflow states in dor or trust SOLR is up to date (defaults to false)
+    #
+    # @return [string] a comma delimited row for the report
     def self.solr_doc_parser(doc,check_status_in_dor=false)
       
       druid = doc[:id]
@@ -413,8 +491,16 @@ module Assembly
        
     end
 
+    # Takes a hash data structure and recursively converts all hash keys from strings to symbols.
+    #
+    # @param [hash] h hash
+    #
+    # @return [hash] a hash with all keys converted from strings to symbols
+    #
+    # Example:
+    #   Assembly::Utils.symbolize_keys({'dude'=>'is cool','i'=>'am too'})
+    #   > {:dude=>"is cool", :i=>"am too"} 
     def self.symbolize_keys(h)
-      # Takes a data structure and recursively converts all hash keys from strings to symbols.
       if h.instance_of? Hash
         h.inject({}) { |hh,(k,v)| hh[k.to_sym] = symbolize_keys(v); hh }
       elsif h.instance_of? Array
@@ -424,11 +510,30 @@ module Assembly
       end
     end
 
+    # Takes a hash and converts its string values to symbols -- not recursively.
+    #
+    # @param [hash] h hash
+    #
+    # @return [hash] a hash with all keys converted from strings to symbols
+    #
+    # Example:
+    #   Assembly::Utils.values_to_symbols!({'dude'=>'iscool','i'=>'amtoo'})
+    #   > {"i"=>:amtoo, "dude"=>:iscool} 
     def self.values_to_symbols!(h)
-      # Takes a hash and converts its string values to symbols -- not recursively.
       h.each { |k,v| h[k] = v.to_sym if v.class == String }
     end    
-    
+
+    private
+    # Used by the cleanup to ask user for confirmation of each step.  Any response other than 'yes' results in the raising of an error 
+    #
+    # @param [string] message the message to show to a user
+    #
+    def self.confirm(message)
+      puts message
+      response=gets.chomp.downcase
+      raise "Exiting" if response != 'y' && response != 'yes'
+    end
+
   end
   
 end

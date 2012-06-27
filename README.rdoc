@@ -1,7 +1,7 @@
 = Assembly Utils Gem
 
 ==Overview 
-Ruby gem of methods usesful for assembly and accessioning. Contains classes to manipulate DOR objects for assembly and accessioning}
+Ruby gem of methods useful for assembly and accessioning. Contains classes to manipulate DOR objects for assembly and accessioning.
 
 ==Releases
 
@@ -10,6 +10,16 @@ Ruby gem of methods usesful for assembly and accessioning. Contains classes to m
 - 1.0.2 more bug fixes to use the new druid-tools namespace
 - 1.0.3 add a method to compute staging paths based on changes to Druid gem path computations
 - 1.0.4 add some tests and document methods
+- 1.0.5 add more spec tests and documentation
 
-==Notes
+==Running tests
 
+You will need to be on the Stanford network (not wifi) or VPNed in to run the tests, since it connects to DOR.  To run the tests
+
+bundle exec rspec spec
+
+==Connecting to DOR
+
+Some of the methods require a connection to DOR, which is not provided as part of this gem.  In order to connect to DOR, you will need
+some configuration information in your project, along with the certificates for the appropriate environment.  Connections for development DOR
+are provided as part of the gem in the 'config' directory and are used in the spec test suite.

@@ -4,5 +4,6 @@ require 'rubygems'
 require 'irb'
 
 require File.expand_path(File.dirname(__FILE__) + '/../config/boot')
+require File.expand_path(File.dirname(__FILE__) + '/../config/connect_to_dor')
 
 IRB.start
