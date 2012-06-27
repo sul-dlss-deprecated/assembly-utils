@@ -1,5 +1,13 @@
 describe Assembly::Utils do
 
+  before(:all) do
+    load_test_object
+  end
+
+  after(:all) do
+    delete_test_object
+  end
+  
   it "should compute the correct staging path given a druid" do
     path=Assembly::Utils.get_staging_path('aa000aa0001')
     path.should == 'aa/000/aa/0001'
@@ -47,10 +55,38 @@ describe Assembly::Utils do
     config=Assembly::Utils.load_config(config_filename)   
     config['progress_log_file'].should == 'tmp/progress_revs.yaml'
   end
+
+  ###################################################################################
+  # NOTE: All the tests below depend on being able to connect successfully to DOR Dev
   
-  it "should connect to DOR dev and find druids by source ID" do
-    # this test depends on a specific object being in dor DEV
-    druids=Assembly::Utils.get_druids_by_sourceid(['REVS:reg-app-1'])
-    druids.should == ['druid:zg352kf6612']
+  it "should find druids by source ID" do
+    druids=Assembly::Utils.get_druids_by_sourceid(['testing-assembly-utils-gem'])
+    druids.should == [TEST_PID]
   end
+  
+  it "should replace the datastream of an object" do
+    new_content="<xml><tag>stuff</tag></xml>"
+    datastream="test"
+    druids=[TEST_PID]
+    Assembly::Utils.replace_datastreams(druids,datastream,new_content)
+    Dor.find(TEST_PID).update_index
+    obj = Dor::Item.find(TEST_PID)
+    obj.datastreams[datastream].content.should =~ /<tag>stuff<\/tag>/
+  end
+
+  it "should search and replace the datastream of an object" do
+    find_content="stuff"
+    replace_content="new"
+    datastream="test"
+    druids=[TEST_PID]
+    Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
+    Dor.find(TEST_PID).update_index
+    obj = Dor::Item.find(TEST_PID)
+    obj.datastreams[datastream].content.should =~ /<tag>new<\/tag>/
+  end
+  
+  it "should return NOT FOUND when the workflow state is not found in an object" do
+    Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create').should == "NOT FOUND"
+  end
+  
 end
