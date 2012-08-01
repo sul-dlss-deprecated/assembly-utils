@@ -7,6 +7,7 @@ module Assembly
   class Utils
 
     # Get the staging directory tree given a druid, and optionally prepend a basepath.
+    # Deprecated and should not be needed anymore.
     #
     # @param [String] pid druid pid (e.g. 'aa000aa0001')
     # @param [String] base_path optional base path to prepend to druid path
@@ -219,6 +220,8 @@ module Assembly
          druid_tree=DruidTools::Druid.new(pid).tree
          puts "Cleaning up #{pid}"
          if steps.include?(:dor)
+           puts "-- deleting #{pid} workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
+           Assembly::Utils.delete_all_workflows(pid) unless dry_run           
            puts "-- deleting #{pid} from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
            Assembly::Utils.unregister(pid) unless dry_run
          end
@@ -356,6 +359,31 @@ module Assembly
       raise "update_workflow_error_status() returned false." unless resp == true
     end
 
+    # Get workflow names into an array for given PID
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [string] pid of druid
+    #
+    # @return [array] list of worklows
+    # e.g. 
+    # Assembly::Utils.get_workflows('druid:sr100hp0609')
+    # => ["accessionWF", "assemblyWF", "disseminationWF"]
+    def self.get_workflows(pid)
+      xml_doc=Nokogiri::XML(Dor::WorkflowService.get_workflow_xml('dor',pid,''))
+      return xml_doc.xpath('//workflow').collect {|workflow| workflow['id']}
+    end
+
+    # Delete all workflows for the given PID.   Destructive and should only be used when deleting an object from DOR.
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [string] pid of druid
+    #
+    # e.g. 
+    # Assembly::Utils.delete_all_workflows('druid:oo000oo0001')
+    def self.delete_all_workflows(pid)
+      Assembly::Utils.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow('dor',pid,workflow)}
+    end
+    
     # Clear stray workflows - remove any workflow steps for orphaned objects.
     # This method only works when this gem is used in a project that is configured to connect to DOR
     def self.clear_stray_workflows
