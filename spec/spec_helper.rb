@@ -1,4 +1,5 @@
 TEST_PID='druid:dd999dd9999'
+TEST_APO_OBJECT='druid:nt592gh9590'   # this is a real APO object in dor-dev that must exist for the tests to pass
 PATH = File.expand_path(File.dirname(__FILE__))
 require "#{PATH}/../config/boot"
 require "#{PATH}/../config/connect_to_dor"

@@ -12,6 +12,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.0.4 add some tests and document methods
 - 1.0.5 add more spec tests and documentation; update get_staging_path method to fix a bug
 - 1.0.6 add the ability to delete workflows in the cleanup method, add a new method to fetch and delete all workflows
+- 1.0.7 add a new method to determine if a specific workflow is defined in the APO
 
 ==Running tests
 

@@ -299,6 +299,23 @@ module Assembly
       end 
     end    
 
+    # Determines if the specify APO object contains a specified workflow defined in it
+    #
+    # @param [string] druid - the druid of the APO to check
+    # @param [string] workflow - the name of the workflow to check
+    #  
+    # @return [boolean] if workflow is defined in APO
+    #  
+    # Example:
+    #   Assembly::Utils.apo_workflow_defined?('druid:oo000oo0001','assembly')
+    # > true
+    def self.apo_workflow_defined?(druid,workflow)
+      obj = Dor::Item.find(druid)
+      raise 'object not an APO' if obj.identityMetadata.objectType.first != 'adminPolicy'
+      xml_doc=Nokogiri::XML(obj.administrativeMetadata.content)
+      xml_doc.xpath("//#{workflow}").size == 1 || xml_doc.xpath("//*[@id='#{workflow}']").size == 1
+    end
+    
     # Update a specific datastream for a series of objects in DOR by searching and replacing content 
     #
     # @param [array] druids - an array of druids
@@ -330,6 +347,8 @@ module Assembly
     # Unregister a DOR object, which includes deleting it and setting all workflow assembly steps to an error state
     #
     # @param [string] pid of druid
+    #
+    # @return [boolean] if deletion succeed or not    
     def self.unregister(pid)
       
       begin
