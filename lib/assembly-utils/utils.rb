@@ -23,7 +23,34 @@ module Assembly
       path.slice!(0) if base_path=='' && path[0]==47 # remove first / if base_path is empty
       return path
     end
-  
+    
+    # Export one or more objects given a single or array of pids, with output to the specified directory as FOXML files
+    #
+    # @param [Array] pids - an array of pids to export (can also pass a single pid as a string)
+    # @param [String] output_dir - the full path to output the foxml files
+    #
+    # Example:
+    #  Assembly::Utils.export_objects(['druid:aa000aa0001','druid:bb000bb0001'],'/tmp')
+    def self.export_objects(pids,output_dir)
+      pids=[pids] if pids.class==String
+      pids.each {|pid| ActiveFedora::FixtureExporter.export_to_path(pid, output_dir)}  
+    end
+
+    # Import all of the FOXML files in the specified directory into Fedora
+    #
+    # @param [String] source_dir - the full path to import the foxml files
+    #
+    # Example:
+    #  Assembly::Utils.import_objects('/tmp')
+    def self.import_objects(source_dir)
+      Dir.chdir(source_dir)
+      files=Dir.glob('*.foxml.xml')
+      files.each do |file|
+        pid = ActiveFedora::FixtureLoader.import_to_fedora(File.join(source_dir,file))
+        ActiveFedora::FixtureLoader.index(pid)
+      end
+    end
+    
     # Get a list of druids that match the given array of source IDs.  
     # This method only works when this gem is used in a project that is configured to connect to DOR
     #

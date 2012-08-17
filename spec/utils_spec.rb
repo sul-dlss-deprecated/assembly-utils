@@ -1,12 +1,4 @@
 describe Assembly::Utils do
-
-  before(:all) do
-    load_test_object
-  end
-
-  after(:all) do
-    delete_test_object
-  end
   
   it "should compute the correct staging path given a druid" do
     path=Assembly::Utils.get_staging_path('aa000aa0001')
@@ -58,48 +50,66 @@ describe Assembly::Utils do
 
   ###################################################################################
   # NOTE: All the tests below depend on being able to connect successfully to DOR Dev
-  
-  it "should find druids by source ID" do
-    druids=Assembly::Utils.get_druids_by_sourceid(['testing-assembly-utils-gem'])
-    druids.should == [TEST_PID]
-  end
-  
-  it "should replace the datastream of an object" do
-    new_content="<xml><tag>stuff</tag></xml>"
-    datastream="test"
-    druids=[TEST_PID]
-    Assembly::Utils.replace_datastreams(druids,datastream,new_content)
-    Dor.find(TEST_PID).update_index
-    obj = Dor::Item.find(TEST_PID)
-    obj.datastreams[datastream].content.should =~ /<tag>stuff<\/tag>/
-  end
+  describe "dor-only-tests" do
 
-  it "should search and replace the datastream of an object" do
-    find_content="stuff"
-    replace_content="new"
-    datastream="test"
-    druids=[TEST_PID]
-    Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
-    Dor.find(TEST_PID).update_index
-    obj = Dor::Item.find(TEST_PID)
-    obj.datastreams[datastream].content.should =~ /<tag>new<\/tag>/
-  end
-  
-  it "should return NOT FOUND when the workflow state is not found in an object" do
-    Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create').should == "NOT FOUND"
-  end
-  
-  it "should indicate if the specified workflow is defined in an APO object" do
-    Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessionWF').should be true
-    Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessioning').should be true
-  end
+    before(:all) do
+      load_test_object
+    end
 
-  it "should indicate if the specified workflow is not defined in an APO object" do
-    Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'crapsticks').should be false
-  end  
+    after(:all) do
+      delete_test_object
+      remove_files(TEST_OUTPUT_DIR)
+    end
+        
+    it "should find druids by source ID" do
+      druids=Assembly::Utils.get_druids_by_sourceid(['testing-assembly-utils-gem'])
+      druids.should == [TEST_PID]
+    end
+  
+    it "should replace the datastream of an object" do
+      new_content="<xml><tag>stuff</tag></xml>"
+      datastream="test"
+      druids=[TEST_PID]
+      Assembly::Utils.replace_datastreams(druids,datastream,new_content)
+      Dor.find(TEST_PID).update_index
+      obj = Dor::Item.find(TEST_PID)
+      obj.datastreams[datastream].content.should =~ /<tag>stuff<\/tag>/
+    end
 
-  it "should indicate if the specified object is not an APO" do
-    lambda{Assembly::Utils.apo_workflow_defined?(TEST_PID,'crapsticks')}.should raise_error 
-  end  
+    it "should search and replace the datastream of an object" do
+      find_content="stuff"
+      replace_content="new"
+      datastream="test"
+      druids=[TEST_PID]
+      Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
+      Dor.find(TEST_PID).update_index
+      obj = Dor::Item.find(TEST_PID)
+      obj.datastreams[datastream].content.should =~ /<tag>new<\/tag>/
+    end
+  
+    it "should export a PID to FOXML" do
+      File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml")).should be false
+      Assembly::Utils.export_objects(TEST_PID,TEST_OUTPUT_DIR)
+      File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml")).should be true
+    end
+  
+    it "should return NOT FOUND when the workflow state is not found in an object" do
+      Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create').should == "NOT FOUND"
+    end
+  
+    it "should indicate if the specified workflow is defined in an APO object" do
+      Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessionWF').should be true
+      Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessioning').should be true
+    end
+
+    it "should indicate if the specified workflow is not defined in an APO object" do
+      Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'crapsticks').should be false
+    end  
+
+    it "should indicate if the specified object is not an APO" do
+      lambda{Assembly::Utils.apo_workflow_defined?(TEST_PID,'crapsticks')}.should raise_error 
+    end  
+  
+  end
   
 end

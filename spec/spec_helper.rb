@@ -1,17 +1,24 @@
 TEST_PID='druid:dd999dd9999'
+TEST_PID_FILENAME=TEST_PID.gsub(':','_')
 TEST_APO_OBJECT='druid:nt592gh9590'   # this is a real APO object in dor-dev that must exist for the tests to pass
 PATH = File.expand_path(File.dirname(__FILE__))
+TEST_OUTPUT_DIR=File.join(PATH,'test_data','output')
+
 require "#{PATH}/../config/boot"
 require "#{PATH}/../config/connect_to_dor"
 
+def remove_files(dir)
+  Dir.foreach(dir) {|f| fn = File.join(dir, f); File.delete(fn) if !File.directory?(fn) && File.basename(fn) != '.empty'}
+end
+
 def load_test_object
-  fedora = ActiveFedora::Base.connection_for_pid(0)
-  fedora.ingest :pid => TEST_PID, :file =>File.read("#{PATH}/test_data/druid_dd999dd9999.xml")
-  Dor.find(TEST_PID).update_index  
+  pid = ActiveFedora::FixtureLoader.import_to_fedora("#{PATH}/test_data/#{TEST_PID_FILENAME}.xml")
+  Dor.find(TEST_PID).update_index
 end
 
 def delete_test_object
   Dor::Config.fedora.client["objects/#{TEST_PID}"].delete
+  Dor.find(TEST_PID).update_index
 end
 
 
