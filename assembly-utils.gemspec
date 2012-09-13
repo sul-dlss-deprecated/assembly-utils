@@ -18,12 +18,10 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_dependency 'csv-mapper'
-  s.add_dependency 'dor-services', '>=3.9.0'
+  s.add_dependency 'dor-services', '>=3.8.0'
   s.add_dependency 'lyber-core'
-  s.add_dependency 'net-ssh'
   s.add_dependency 'net-ssh-kerberos'
   s.add_dependency 'net-ssh-gateway'
-  s.add_dependency 'druid-tools'
 
   s.add_development_dependency "rspec", "~> 2.6"
   s.add_development_dependency "lyberteam-devel"

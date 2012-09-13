@@ -15,6 +15,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.0.7 add a new method to determine if a specific workflow is defined in the APO
 - 1.0.8 add methods to batch import and export objects to/from FOXML
 - 1.0.9 add spec output test data directory to git
+- 1.0.10 lowered required version of dor-services from 3.9.0 to 3.8.0
 
 ==Running tests
 
