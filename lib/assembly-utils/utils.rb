@@ -263,7 +263,7 @@ module Assembly
            FileUtils.rm_rf path_to_content if !dry_run && File.exists?(path_to_content)
          end
          if steps.include?(:stacks)
-           path_to_content=File.join('/stacks',druid_tree)
+           path_to_content= Dor::DigitalStacksService.stacks_storage_dir(druid)
            puts "-- removing files from the stacks on #{stacks_server} at #{path_to_content}"
            ssh_session.exec!("rm -fr #{path_to_content}") unless dry_run
          end
@@ -423,11 +423,11 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to DOR
     #
     # @param [string] pid of druid
-    #
+    # @param [String] repo repository dealing with the workflow.  Default is 'dor'.  Another option is 'sdr'
     # e.g. 
     # Assembly::Utils.delete_all_workflows('druid:oo000oo0001')
-    def self.delete_all_workflows(pid)
-      Assembly::Utils.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow('dor',pid,workflow)}
+    def self.delete_all_workflows(pid, repo='dor')
+      Assembly::Utils.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo,pid,workflow)}
     end
     
     # Clear stray workflows - remove any workflow steps for orphaned objects.

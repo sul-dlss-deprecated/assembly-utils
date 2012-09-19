@@ -18,14 +18,17 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_dependency 'csv-mapper'
-  s.add_dependency 'dor-services', '>=3.8.0'
+
+  s.add_dependency 'dor-services', '~>3.13'
   s.add_dependency 'lyber-core'
   s.add_dependency 'net-ssh-kerberos'
   s.add_dependency 'net-ssh-gateway'
+  
+  s.add_dependency 'activesupport', '>= 3.2.6'
+  s.add_dependency 'activeresource', '>= 3.2.6'
 
   s.add_development_dependency "rspec", "~> 2.6"
   s.add_development_dependency "lyberteam-devel"
-  s.add_development_dependency "lyberteam-gems-devel"
   s.add_development_dependency "yard"
   
 end
