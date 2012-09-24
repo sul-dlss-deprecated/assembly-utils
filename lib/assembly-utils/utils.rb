@@ -263,7 +263,7 @@ module Assembly
            FileUtils.rm_rf path_to_content if !dry_run && File.exists?(path_to_content)
          end
          if steps.include?(:stacks)
-           path_to_content= Dor::DigitalStacksService.stacks_storage_dir(druid)
+           path_to_content= Dor::DigitalStacksService.stacks_storage_dir(pid)
            puts "-- removing files from the stacks on #{stacks_server} at #{path_to_content}"
            ssh_session.exec!("rm -fr #{path_to_content}") unless dry_run
          end

@@ -16,6 +16,8 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.0.8 add methods to batch import and export objects to/from FOXML
 - 1.0.9 add spec output test data directory to git
 - 1.0.10 lowered required version of dor-services from 3.9.0 to 3.8.0
+- 1.0.11 use Dor::DigitalStacksService to calculate stacks directory to cleanup
+- 1.0.12 bugfix on call to Dor::DigitalStacksService
 
 ==Running tests
 
