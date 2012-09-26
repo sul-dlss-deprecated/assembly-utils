@@ -18,6 +18,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.0.10 lowered required version of dor-services from 3.9.0 to 3.8.0
 - 1.0.11 use Dor::DigitalStacksService to calculate stacks directory to cleanup
 - 1.0.12 bugfix on call to Dor::DigitalStacksService
+- 1.0.13 update to latest lyberteam devel gems
 
 ==Running tests
 
