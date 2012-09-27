@@ -24,6 +24,19 @@ module Assembly
       return path
     end
     
+    # Force a full re-index of the supplied druid in solr and fedora.
+    #
+    # @param [String] druid druid (e.g. 'druid:aa000aa0001')
+    #
+    # Example:
+    #   puts Assembly::Utils.reindex('druid:aa000aa0001')
+    def self.reindex(druid)
+      obj = Dor.load_instance druid
+      solr_doc = obj.to_solr
+      Dor::SearchService.solr.add(solr_doc, :add_attributes => {:commitWithin => 1000}) unless obj.nil? 
+      ActiveFedora::FixtureLoader.index(druid)
+    end
+    
     # Export one or more objects given a single or array of pids, with output to the specified directory as FOXML files
     #
     # @param [Array] pids - an array of pids to export (can also pass a single pid as a string)
