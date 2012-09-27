@@ -34,7 +34,7 @@ module Assembly
       obj = Dor.load_instance druid
       solr_doc = obj.to_solr
       Dor::SearchService.solr.add(solr_doc, :add_attributes => {:commitWithin => 1000}) unless obj.nil? 
-      ActiveFedora::FixtureLoader.index(druid)
+      Dor.find(pid).update_index
     end
     
     # Export one or more objects given a single or array of pids, with output to the specified directory as FOXML files

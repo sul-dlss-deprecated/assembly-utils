@@ -57,8 +57,8 @@ describe Assembly::Utils do
     end
 
     after(:all) do
-      delete_test_object
       remove_files(TEST_OUTPUT_DIR)
+      delete_test_object
     end
         
     it "should find druids by source ID" do
