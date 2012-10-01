@@ -296,6 +296,7 @@ module Assembly
     def self.delete_from_dor(pid)
       
       Dor::Config.fedora.client["objects/#{pid}"].delete
+      Dor::SearchService.solr.delete_by_id(pid)
   
     end
     
