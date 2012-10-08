@@ -136,7 +136,7 @@ module Assembly
       filename=params[:filename] || ''
 
       accession_steps = %w(content-metadata	descriptive-metadata rights-metadata shelve publish)
-      assembly_steps = Assembly::ASSEMBLY_WF_STEPS.map { |s| s[0] }
+      assembly_steps = %w(jp2-create checksum-compute exif-collect accessioning-initiate)
 
       puts "Generating report"
 
@@ -340,8 +340,8 @@ module Assembly
       end 
     end    
 
-    # Determines if the specify APO object contains a specified workflow defined in it
-    #
+    # Determines if the specifed APO object contains a specified workflow defined in it
+    # DEPRACATED NOW THAT REIFED WORKFLOWS ARE USED
     # @param [string] druid - the druid of the APO to check
     # @param [string] workflow - the name of the workflow to check
     #  
@@ -351,10 +351,28 @@ module Assembly
     #   Assembly::Utils.apo_workflow_defined?('druid:oo000oo0001','assembly')
     # > true
     def self.apo_workflow_defined?(druid,workflow)
+      puts "************WARNING - THIS METHOD MAY NOT BE USEFUL ANYMORE SINCE WORKFLOWS ARE NO LONGER DEFINED IN THE APO**************"
       obj = Dor::Item.find(druid)
       raise 'object not an APO' if obj.identityMetadata.objectType.first != 'adminPolicy'
       xml_doc=Nokogiri::XML(obj.administrativeMetadata.content)
       xml_doc.xpath("//#{workflow}").size == 1 || xml_doc.xpath("//*[@id='#{workflow}']").size == 1
+    end
+ 
+    # Determines if the specifed object is an APO
+    # @param [string] druid - the druid of the APO to check
+    #  
+    # @return [boolean] if object exist and is an APO
+    #  
+    # Example:
+    #   Assembly::Utils.is_apo?('druid:oo000oo0001')
+    # > true
+    def self.is_apo?(druid)
+      begin
+        obj = Dor::Item.find(druid)
+        return obj.identityMetadata.objectType.first == 'adminPolicy'      
+      rescue
+        return false
+      end
     end
     
     # Update a specific datastream for a series of objects in DOR by searching and replacing content 

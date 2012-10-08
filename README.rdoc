@@ -20,6 +20,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.0.12 bugfix on call to Dor::DigitalStacksService
 - 1.0.13 update to latest lyberteam devel gems
 - 1.0.14 add new method to re-index item in solr
+- 1.1.0  small updates to some methods to depracate apo_workflow checking method
 
 ==Running tests
 
