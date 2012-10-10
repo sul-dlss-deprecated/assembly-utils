@@ -462,6 +462,13 @@ module Assembly
       Assembly::Utils.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo,pid,workflow)}
     end
     
+    def self.get_druids_in_state(workflow,step,state)
+      
+      data_url="#{Dor::Config.argo}/report/data.json?f[wf_wps_facet][]=#{workflow}&f[wf_wps_facet][]=#{workflow}%3A#{step}%3A#{state}"
+      puts data_url
+      
+    end
+    
     # Clear stray workflows - remove any workflow steps for orphaned objects.
     # This method only works when this gem is used in a project that is configured to connect to DOR
     def self.clear_stray_workflows
@@ -490,6 +497,7 @@ module Assembly
     # @param [Hash] params parameters specified as a hash, using symbols for options:
     #   * :druids => array of druids
     #   * :steps => a hash, containing workflow names as keys, and an array of steps
+    #   * :state => a string for the name of the state to reset to, defaults to 'waiting' (could be 'completed' for example)
     #
     # Example:
     #   druids=['druid:aa111aa1111','druid:bb222bb2222']
@@ -497,20 +505,66 @@ module Assembly
     #   Assembly::Utils.reset_workflow_states(:druids=>druids,:steps=>steps)
     def self.reset_workflow_states(params={})
       druids=params[:druids] || []
-      steps=params[:steps] || {}
+      workflows=params[:steps] || {}
+      state=params[:state] || "waiting"
       druids.each do |druid|
       	puts "** #{druid}"
       	begin
-      	    steps.each do |workflow,states| 
-      	      states.each do |state| 
-      	        puts "Updating #{workflow}:#{state} to waiting"
-      	        Dor::WorkflowService.update_workflow_status 'dor',druid,workflow, state, 'waiting'
+      	    workflows.each do |workflow,steps| 
+      	      steps.each do |step| 
+      	        puts "Updating #{workflow}:#{step} to #{state}"
+      	        Dor::WorkflowService.update_workflow_status 'dor',druid,workflow, step, state
               end
             end
           rescue Exception => e
       		  puts "an error occurred trying to update workflows for #{druid} with message #{e.message}"
       	end
       end
+    end
+
+    # Get a list of druids that have errored out in a particular workflow and step
+    #
+    # @param [string] workflow name
+    # @param [string] step name
+    # @param [string] tag -- optional, if supplied, results will be filtered by the exact tag supplied; note this will dramatically slow down the response if there are many results
+    #
+    # @return [hash] hash of results, with key has a druid, and value as the error message
+    # e.g. 
+    # result=Assembly::Utils.get_errored_objects_for_workstep('accessionWF','content-metadata','Project : Revs')
+    # => {"druid:qd556jq0580"=>"druid:qd556jq0580 - Item error; caused by #<Rubydora::FedoraInvalidRequest: Error modifying datastream contentMetadata for druid:qd556jq0580. See logger for details>"}
+    def self.get_errored_objects_for_workstep workflow, step, tag = ''
+      result=Dor::WorkflowService.get_errored_objects_for_workstep workflow,step,'dor'
+      if tag == ''
+        return result
+      else
+        filtered_result={}
+        result.each do |druid,error|
+          begin
+            item=Dor::Item.find(druid)
+            filtered_result.merge!(druid=>error) if item.tags.include? tag
+          rescue
+          end
+        end
+        return filtered_result
+      end
+    end
+
+    # Reset any objects in a specific workflow step and state that have errored out back to waiting
+    #
+    # @param [string] workflow name
+    # @param [string] step name
+    # @param [string] tag -- optional, if supplied, results will be filtered by the exact tag supplied; note this will dramatically slow down the response if there are many results
+    #
+    # @return [hash] hash of results that have been reset, with key has a druid, and value as the error message
+    # e.g. 
+    # result=Assembly::Utils.reset_errored_objects_for_workstep('accessionWF','content-metadata')
+    # => {"druid:qd556jq0580"=>"druid:qd556jq0580 - Item error; caused by #<Rubydora::FedoraInvalidRequest: Error modifying datastream contentMetadata for druid:qd556jq0580. See logger for details>"}    
+    def self.reset_errored_objects_for_workstep workflow, step, tag=''
+      result=self.get_errored_objects_for_workstep workflow,step,tag
+      druids=[]
+      result.each {|k,v| druids << k}
+      self.reset_workflow_states(:druids=>druids,:steps=>{workflow=>[step]}) if druids.size > 0
+      return result
     end
 
     # Read in a list of druids from a pre-assembly progress load file and load into an array.

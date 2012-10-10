@@ -21,6 +21,8 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.0.13 update to latest lyberteam devel gems
 - 1.0.14 add new method to re-index item in solr
 - 1.1.0  small updates to some methods to depracate apo_workflow checking method
+- 1.1.1  add dor-workflow-service gem and convenience method to auto reset all objects in a specific state back to waiting
+- 1.1.2  allow reset_workflow_state to accept a state parameter 
 
 ==Running tests
 

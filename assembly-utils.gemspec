@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'lyber-core'
   s.add_dependency 'net-ssh-kerberos'
   s.add_dependency 'net-ssh-gateway'
+  s.add_dependency 'dor-workflow-service', '>=1.0.1'
   
   s.add_dependency 'activesupport', '>= 3.2.6'
   s.add_dependency 'activeresource', '>= 3.2.6'
