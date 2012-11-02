@@ -23,6 +23,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.1.0  small updates to some methods to depracate apo_workflow checking method
 - 1.1.1  add dor-workflow-service gem and convenience method to auto reset all objects in a specific state back to waiting
 - 1.1.2  allow reset_workflow_state to accept a state parameter 
+- 1.1.3  add a reindex method
 
 ==Running tests
 

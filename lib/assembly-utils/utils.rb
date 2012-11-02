@@ -461,12 +461,16 @@ module Assembly
     def self.delete_all_workflows(pid, repo='dor')
       Assembly::Utils.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo,pid,workflow)}
     end
-    
-    def self.get_druids_in_state(workflow,step,state)
-      
-      data_url="#{Dor::Config.argo}/report/data.json?f[wf_wps_facet][]=#{workflow}&f[wf_wps_facet][]=#{workflow}%3A#{step}%3A#{state}"
-      puts data_url
-      
+
+    # Reindex the supplied PID in solr.
+    #
+    # @param [string] pid of druid
+    # e.g. 
+    # Assembly::Utils.reindex('druid:oo000oo0001')    
+    def self.reindex(pid)
+      obj = Dor.load_instance pid
+      solr_doc = obj.to_solr
+      Dor::SearchService.solr.add(solr_doc, :add_attributes => {:commitWithin => 1000}) unless obj.nil?  
     end
     
     # Clear stray workflows - remove any workflow steps for orphaned objects.
