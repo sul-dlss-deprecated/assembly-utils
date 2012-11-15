@@ -24,6 +24,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.1.1  add dor-workflow-service gem and convenience method to auto reset all objects in a specific state back to waiting
 - 1.1.2  allow reset_workflow_state to accept a state parameter 
 - 1.1.3  add a reindex method
+- 1.1.4  fixed delete object method to remove from solr too; fix cleanup object method to remove both old and new style druid trees 
 
 ==Running tests
 

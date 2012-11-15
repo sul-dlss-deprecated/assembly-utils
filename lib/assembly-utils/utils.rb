@@ -266,12 +266,16 @@ module Assembly
            Assembly::Utils.unregister(pid) unless dry_run
          end
          if steps.include?(:symlinks)
-           path_to_symlink=File.join(Assembly::DOR_WORKSPACE,druid_tree)
-           puts "-- deleting symlink #{path_to_symlink}"
-           File.delete(path_to_symlink) if !dry_run && File.exists?(path_to_symlink)
+           path_to_symlinks=[]
+           path_to_symlinks << File.join(Assembly::DOR_WORKSPACE,druid_tree)
+           path_to_symlinks << Assembly::Utils.get_staging_path(pid,Assembly::ASSEMBLY_WORKSPACE)
+           path_to_symlinks.each do |path|
+             puts "-- deleting symlink #{path}"
+             File.delete(path) if !dry_run && File.exists?(path)
+           end 
          end
          if steps.include?(:stage)
-           path_to_content=File.join(Assembly::ASSEMBLY_WORKSPACE,druid_tree)
+           path_to_content=Assembly::Utils.get_staging_path(pid,Assembly::ASSEMBLY_WORKSPACE)
            puts "-- deleting folder #{path_to_content}"
            FileUtils.rm_rf path_to_content if !dry_run && File.exists?(path_to_content)
          end
@@ -297,6 +301,7 @@ module Assembly
       
       Dor::Config.fedora.client["objects/#{pid}"].delete
       Dor::SearchService.solr.delete_by_id(pid)
+      Dor::SearchService.solr.commit
   
     end
     
