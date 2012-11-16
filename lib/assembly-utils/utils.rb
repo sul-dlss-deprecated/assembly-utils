@@ -279,13 +279,6 @@ module Assembly
         
          druid_tree=DruidTools::Druid.new(pid).tree
          puts "Cleaning up #{pid}"
-         if steps.include?(:workflows)
-           puts "-- deleting #{pid} accessionWF and assemblyWF workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
-           unless dry_run
-             Dor::WorkflowService.delete_workflow('dor',pid,'accessionWF')
-             Dor::WorkflowService.delete_workflow('dor',pid,'assemblyWF')
-           end
-         end
          if steps.include?(:dor)          
            puts "-- deleting #{pid} from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
            Assembly::Utils.unregister(pid) unless dry_run
@@ -308,6 +301,13 @@ module Assembly
            path_to_content= Dor::DigitalStacksService.stacks_storage_dir(pid)
            puts "-- removing files from the stacks on #{stacks_server} at #{path_to_content}"
            ssh_session.exec!("rm -fr #{path_to_content}") unless dry_run
+         end
+         if steps.include?(:workflows)
+           puts "-- deleting #{pid} accessionWF and assemblyWF workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
+           unless dry_run
+             Dor::WorkflowService.delete_workflow('dor',pid,'accessionWF')
+             Dor::WorkflowService.delete_workflow('dor',pid,'assemblyWF')
+           end
          end
        rescue Exception => e
          puts "** cleaning up failed for #{pid} with #{e.message}"
