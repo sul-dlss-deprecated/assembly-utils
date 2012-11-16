@@ -212,11 +212,11 @@ module Assembly
      #                :dor=This will delete objects from Fedora
      #                :stage=This will delete the staged content in the assembly workspace
      #                :symlinks=This will remove the symlink from the dor workspace
-     #
+     #                :workflows=This will remove the assemblyWF and accessoiningWF workflows for this object
      #   * :dry_run =>  do not actually clean up (defaults to false)
      #
      # Example:
-     #   Assembly::Utils.cleanup(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:steps=>[:stacks,:dor,:stage,:symlinks])
+     #   Assembly::Utils.cleanup(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:steps=>[:stacks,:dor,:stage,:symlinks,:workflows])
      def self.cleanup(params={})
        
        druids=params[:druids] || []
@@ -226,7 +226,8 @@ module Assembly
        allowed_steps={:stacks=>'This will remove all files from the stacks that were shelved for the objects',
                       :dor=>'This will delete objects from Fedora',
                       :stage=>"This will delete the staged content in #{Assembly::ASSEMBLY_WORKSPACE}",
-                      :symlinks=>"This will remove the symlink from #{Assembly::DOR_WORKSPACE}"}
+                      :symlinks=>"This will remove the symlink from #{Assembly::DOR_WORKSPACE}",
+                      :workflows=>"This will remove the accessionWF and assemblyWF workflows"}
 
        num_steps=0
 
@@ -258,10 +259,11 @@ module Assembly
     #                :dor=This will delete objects from Fedora
     #                :stage=This will delete the staged content in the assembly workspace
     #                :symlinks=This will remove the symlink from the dor workspace
+    #                :workflows=This will remove the assemblyWF and accessoiningWF workflows for this object
     # @param [boolean] dry_run do not actually clean up (defaults to false)
     #
     # Example:
-    #   Assembly::Utils.cleanup_object('druid:aa000aa0001',[:stacks,:dor,:stage,:symlinks])
+    #   Assembly::Utils.cleanup_object('druid:aa000aa0001',[:stacks,:dor,:stage,:symlinks,:workflows])
     def self.cleanup_object(pid,steps,dry_run=false)
       case ENV['ROBOT_ENVIRONMENT']
         when "test"
@@ -277,9 +279,14 @@ module Assembly
         
          druid_tree=DruidTools::Druid.new(pid).tree
          puts "Cleaning up #{pid}"
-         if steps.include?(:dor)
-           puts "-- deleting #{pid} workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
-           Assembly::Utils.delete_all_workflows(pid) unless dry_run           
+         if steps.include?(:workflows)
+           puts "-- deleting #{pid} accessionWF and assemblyWF workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
+           unless dry_run
+             Dor::WorkflowService.delete_workflow('dor',pid,'accessionWF')
+             Dor::WorkflowService.delete_workflow('dor',pid,'assemblyWF')
+           end
+         end
+         if steps.include?(:dor)          
            puts "-- deleting #{pid} from Fedora #{ENV['ROBOT_ENVIRONMENT']}" 
            Assembly::Utils.unregister(pid) unless dry_run
          end
@@ -426,7 +433,7 @@ module Assembly
       end 
     end    
 
-    # Unregister a DOR object, which includes deleting it and setting all workflow assembly steps to an error state
+    # Unregister a DOR object, which includes deleting it and deleting all its workflows
     #
     # @param [string] pid of druid
     #
@@ -434,11 +441,7 @@ module Assembly
     def self.unregister(pid)
       
       begin
-        # Set all assemblyWF steps to error.
-        steps = Assembly::ASSEMBLY_WF_STEPS
-        steps.each { |step, status|  Assembly::Utils.set_workflow_step_to_error pid, step }
-
-        # Delete object from Dor.
+        Assembly::Utils.delete_all_workflows pid
         Assembly::Utils.delete_from_dor pid
         return true
       rescue
@@ -460,20 +463,6 @@ module Assembly
       raise "update_workflow_error_status() returned false." unless resp == true
     end
 
-    # Get workflow names into an array for given PID
-    # This method only works when this gem is used in a project that is configured to connect to DOR
-    #
-    # @param [string] pid of druid
-    #
-    # @return [array] list of worklows
-    # e.g. 
-    # Assembly::Utils.get_workflows('druid:sr100hp0609')
-    # => ["accessionWF", "assemblyWF", "disseminationWF"]
-    def self.get_workflows(pid)
-      xml_doc=Nokogiri::XML(Dor::WorkflowService.get_workflow_xml('dor',pid,''))
-      return xml_doc.xpath('//workflow').collect {|workflow| workflow['id']}
-    end
-
     # Delete all workflows for the given PID.   Destructive and should only be used when deleting an object from DOR.
     # This method only works when this gem is used in a project that is configured to connect to DOR
     #
@@ -482,7 +471,7 @@ module Assembly
     # e.g. 
     # Assembly::Utils.delete_all_workflows('druid:oo000oo0001')
     def self.delete_all_workflows(pid, repo='dor')
-      Assembly::Utils.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo,pid,workflow)}
+      Dor::WorkflowService.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo,pid,workflow)}
     end
 
     # Reindex the supplied PID in solr.

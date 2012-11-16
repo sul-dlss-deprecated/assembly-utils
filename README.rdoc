@@ -26,6 +26,8 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.1.3  add a reindex method
 - 1.1.4  fixed delete object method to remove from solr too; fix cleanup object method to remove both old and new style druid trees 
 - 1.1.5 add new claim druid method
+- 1.1.6 add new step to remove workflows during cleanup_object
+
 ==Running tests
 
 You will need to be on the Stanford network (not wifi) or VPNed in to run the tests, since it connects to DOR.  To run the tests
