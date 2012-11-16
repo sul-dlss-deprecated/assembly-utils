@@ -23,6 +23,24 @@ module Assembly
       path.slice!(0) if base_path=='' && path[0]==47 # remove first / if base_path is empty
       return path
     end
+
+    # Claim a specific druid as already used to be sure it won't get used again.
+    # Not needed for normal purposes, only if you manually register something in Fedora Admin outside of DOR services gem.
+    #
+    # @param [String] pid druid pid (e.g. 'aa000aa0001')
+    #
+    # @return [boolean] indicates success of web service call
+    #
+    # Example:
+    #   puts Assembly::Utils.claim_druid('aa000aa0001')
+    #   > true
+    def self.claim_druid(pid)
+      sc    = Dor::Config.suri
+      url   = "#{sc.url}/suri2/namespaces/#{sc.id_namespace}"
+      rcr   = RestClient::Resource.new(url, :user => sc.user, :password => sc.pass)
+      resp  = rcr["identifiers/#{pid}"].put('')
+      return resp.code == "204"
+    end
     
     # Force a full re-index of the supplied druid in solr and fedora.
     #
