@@ -28,6 +28,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.1.5 add new claim druid method
 - 1.1.6 add new step to remove workflows during cleanup_object
 - 1.1.7 change ordering of cleanup steps so if deleting workflow fails, the earlier steps will still run
+- 1.1.8 fix bug in cleanup method during symlink deletion
 
 ==Running tests
 

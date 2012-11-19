@@ -286,7 +286,7 @@ module Assembly
          if steps.include?(:symlinks)
            path_to_symlinks=[]
            path_to_symlinks << File.join(Assembly::DOR_WORKSPACE,druid_tree)
-           path_to_symlinks << Assembly::Utils.get_staging_path(pid,Assembly::ASSEMBLY_WORKSPACE)
+           path_to_symlinks << Assembly::Utils.get_staging_path(pid,Assembly::DOR_WORKSPACE)
            path_to_symlinks.each do |path|
              puts "-- deleting symlink #{path}"
              File.delete(path) if !dry_run && File.exists?(path)
