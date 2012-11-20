@@ -97,43 +97,6 @@ module Assembly
       source_ids.each {|sid| druids  <<  Dor::SearchService.query_by_id(sid)}
       druids.flatten
     end
-
-    # Tells you the status of the assembly and accessioning robots on the server the command is run on.
-    #
-    # @return [string] output to let you know if robots are running
-    #
-    # Example:
-    #   puts Assembly::Utils.robot_status
-    #   > Accession robots are NOT running
-    #   > Assembly robots are NOT running   
-    def self.robot_status
-    
-      accession_robots="ps -ef | grep accessionWF | wc -l"
-      assembly_robots="ps -ef | grep assemblyWF | wc -l"
-      puts "Accession robots are " +  (`#{accession_robots}`.strip.to_i > 3 ? "running" : "NOT running")
-      puts "Assembly robots are " +  (`#{assembly_robots}`.strip.to_i > 2 ? "running" : "NOT running")
-
-    end
-
-    # Tells you the commands you need to execute on a unix prompt to actually start the assembly and accession robots.
-    # Does NOT execute the commands themselves.
-    #
-    # @return [string] output to let you know how to start robots
-    #
-    # Example:
-    #   puts Assembly::Utils.start_robots
-    #   > cd /home/lyberadmin/common-accessioning/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start accessionWF:content-metadata accessionWF:descriptive-metadata accessionWF:rights-metadata accessionWF:remediate-object accessionWF:publish accessionWF:shelve accessionWF:provenance-metadata accessionWF:cleanup
-    #   > cd /home/lyberadmin/assembly/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start assemblyWF:jp2-create assemblyWF:checksum-compute assemblyWF:exif-collect assemblyWF:accessioning-initiate
-    def self.start_robots
-            
-      accession_robots="cd /home/lyberadmin/common-accessioning/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start accessionWF:content-metadata accessionWF:descriptive-metadata accessionWF:rights-metadata accessionWF:remediate-object accessionWF:publish accessionWF:shelve accessionWF:provenance-metadata accessionWF:cleanup"
-      assembly_robots="cd /home/lyberadmin/assembly/current; ROBOT_ENVIRONMENT=#{ENV['ROBOT_ENVIRONMENT']} ./bin/run_robot start assemblyWF:jp2-create assemblyWF:checksum-compute assemblyWF:exif-collect assemblyWF:accessioning-initiate"
-      
-      puts "To start robots:"
-      puts "#{accession_robots}"
-      puts "#{assembly_robots}" 
-
-    end
  
     # Show the workflow status of specific steps in assembly and/or accession workflows for the provided druids.  
     # This method only works when this gem is used in a project that is configured to connect to DOR
@@ -153,7 +116,7 @@ module Assembly
       workflows=params[:workflows] || [:assembly]
       filename=params[:filename] || ''
 
-      accession_steps = %w(content-metadata	descriptive-metadata rights-metadata shelve publish)
+      accession_steps = %w(content-metadata	descriptive-metadata rights-metadata remediate-object shelve publish)
       assembly_steps = %w(jp2-create checksum-compute exif-collect accessioning-initiate)
 
       puts "Generating report"
