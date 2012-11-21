@@ -1,10 +1,13 @@
 require 'net/ssh'
 require 'csv'
+require 'csv-mapper'
 
 module Assembly
 
+
   # The Utils class contains methods to help with accessioning and assembly
   class Utils
+
 
     # Get the staging directory tree given a druid, and optionally prepend a basepath.
     # Deprecated and should not be needed anymore.
@@ -501,6 +504,26 @@ module Assembly
       end
     end
 
+    # Get a list of druids from a CSV file which has a heading of "druid" and put them into a Ruby array.
+    # Useful if you want to import a report from argo
+    #
+    # @param [string] filename of CSV that has a column called "druid"
+    #
+    # @return [array] array of druids
+    #
+    # Example:
+    #   Assembly::Utils.read_druids_from_file('download.csv') # ['druid:xxxxx','druid:yyyyy']
+    def self.read_druids_from_file(csv_filename)
+      rows=CsvMapper.import(csv_filename) do read_attributes_from_file end
+      druids=[]
+      rows.each do |row|
+        druid=row.druid
+        druid="druid:#{druid}" unless druid.include?('druid:')
+        druids << druid
+      end
+      return druids
+    end
+    
     # Get a list of druids that have errored out in a particular workflow and step
     #
     # @param [string] workflow name

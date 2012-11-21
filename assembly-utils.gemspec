@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_dependency 'csv-mapper'
+  s.add_dependency 'fastercsv'
 
   s.add_dependency 'dor-services', '~>3.13'
   s.add_dependency 'lyber-core'
