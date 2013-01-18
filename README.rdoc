@@ -31,6 +31,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.1.8 fix bug in cleanup method during symlink deletion
 - 1.1.9 add remediate-object to the workflow status report; remove some methods around robot usage that aren't needed anymore
 - 1.2.0 add a new method to return an array of druids from a CSV file which contains a "druid" column
+- 1.2.1 add a new method to insert a specific workflow into an object
 
 ==Running tests
 

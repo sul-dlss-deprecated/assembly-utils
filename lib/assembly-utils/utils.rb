@@ -27,6 +27,23 @@ module Assembly
       return path
     end
 
+    # Insert the specified workflow into the specified object.
+    #
+    # @param [String] pid druid pid (e.g. 'aa000aa0001')
+    # @param [String] workflow name (e.g. 'accessionWF')
+    # @param [String] repository name (e.g. 'dor') -- optional, defaults to dor 
+    #
+    # @return [boolean] indicates success of web service call
+    #
+    # Example:
+    #   puts Assembly::Utils.insert_workflow('druid:aa000aa0001','accessionWF')
+    #   > true
+    def self.insert_workflow(pid,workflow,repo='dor')
+      url   = "#{Dor::Config.dor.service_root}/objects/#{pid}/apo_workflows/#{workflow}"
+      result = RestClient.post url, {}
+      return ([200,201,202,204].include?(result.code) && result)
+    end
+    
     # Claim a specific druid as already used to be sure it won't get used again.
     # Not needed for normal purposes, only if you manually register something in Fedora Admin outside of DOR services gem.
     #
