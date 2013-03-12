@@ -317,15 +317,16 @@ module Assembly
     #
     # @param [array] druids - an array of druids
     # @param [string] apo_druid - the druid of the APO to pull rights metadata from
+    # @param [boolean] publish - defaults to false, if true, will publish each object after replacing datastreams (must be run on server with rights to do this)
     #        
     # Example:
     #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
     #   apo_druid='druid:cc222cc2222'
     #   Assembly::Utils.update_rights_metadata(druids,apo_druid)    
-    def self.update_rights_metadata(druids,apo_druid)
+    def self.update_rights_metadata(druids,apo_druid,publish=false)
       apo = Dor::Item.find(apo_druid)
       rights_md = apo.datastreams['defaultObjectRights']
-      self.replace_datastreams(druids,'rightsMetadata',rights_md.content)
+      self.replace_datastreams(druids,'rightsMetadata',rights_md.content,publish)
     end
     
     # Replace a specific datastream for a series of objects in DOR with new content 
@@ -333,13 +334,14 @@ module Assembly
     # @param [array] druids - an array of druids
     # @param [string] datastream_name - the name of the datastream to replace
     # @param [string] new_content - the new content to replace the entire datastream with
+    # @param [boolean] publish - defaults to false, if true, will publish each object after replacing datastreams (must be run on server with rights to do this)
     #
     # Example:
     #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
     #   new_content='<xml><more nodes>this should be the whole datastream</more nodes></xml>'
     #   datastream='rightsMetadata'
     #   Assembly::Utils.replace_datastreams(druids,datastream,new_content)
-    def self.replace_datastreams(druids,datastream_name,new_content)
+    def self.replace_datastreams(druids,datastream_name,new_content,publish=false)
       druids.each do |druid|
         obj = Dor::Item.find(druid)
         ds = obj.datastreams[datastream_name]  
@@ -347,12 +349,31 @@ module Assembly
           ds.content = new_content 
           ds.save
           puts "replaced #{datastream_name} for #{druid}"
+          if publish
+            obj.publish_metadata
+            puts "--object re-published"
+          end
         else
           puts "#{datastream_name} does not exist for #{druid}"          
         end
       end 
     end    
 
+    # Republish a list of druids.  Only works when run from a server with access rights to the stacks (e.g. lyberservices-prod) 
+    #
+    # @param [array] druids - an array of druids
+     #
+     # Example:
+     #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
+     #   Assembly::Utils.republish(druids)
+    def self.republish(druids)
+      druids.each do |druid|
+        obj = Dor::Item.find(druid)
+        obj.publish_metadata
+        puts "republished #{druid}"
+      end
+    end
+    
     # Determines if the specifed APO object contains a specified workflow defined in it
     # DEPRACATED NOW THAT REIFED WORKFLOWS ARE USED
     # @param [string] druid - the druid of the APO to check
