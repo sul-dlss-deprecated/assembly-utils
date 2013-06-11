@@ -271,9 +271,16 @@ module Assembly
            path_to_symlinks << File.join(Assembly::DOR_WORKSPACE,druid_tree)
            path_to_symlinks << Assembly::Utils.get_staging_path(pid,Assembly::DOR_WORKSPACE)
            path_to_symlinks.each do |path|
-             puts "-- deleting symlink #{path}"
-             File.delete(path) if !dry_run && File.exists?(path)
-           end 
+             if File::directory?(path)
+               puts "-- deleting folder #{path} (WARNING: should have been a symlink)"
+               FileUtils::rm_rf path unless dry_run
+             elsif File.symlink?(path)
+               puts "-- deleting symlink #{path}"
+               File.delete(path) unless dry_run
+             else
+               puts "-- Skipping #{path}: not a folder or symlink"
+             end 
+           end
          end
          if steps.include?(:stage)
            path_to_content=Assembly::Utils.get_staging_path(pid,Assembly::ASSEMBLY_WORKSPACE)
@@ -732,6 +739,25 @@ module Assembly
     def self.values_to_symbols!(h)
       h.each { |k,v| h[k] = v.to_sym if v.class == String }
     end    
+
+    # Removes any duplicate tags within each druid
+    #
+    # @param [array] druids - an array of druids
+    def self.remove_duplicate_tags(druids)
+      druids.each do |druid|
+        i = Dor::Item.find(druid)
+        if i and i.tags.size > 1 # multiple tags
+          i.tags.each do |tag|
+            if (i.tags.select {|t| t == tag}).size > 1 # tag is duplicate
+              i.remove_tag(tag)
+              i.add_tag(tag)
+              puts "Saving #{druid} to remove duplicate tag='#{tag}'"
+              i.save
+            end
+          end 
+        end
+      end
+    end
 
     private
     # Used by the cleanup to ask user for confirmation of each step.  Any response other than 'yes' results in the raising of an error 
