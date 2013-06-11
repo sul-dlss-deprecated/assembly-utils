@@ -9,7 +9,9 @@ module Assembly
   # The Utils class contains methods to help with accessioning and assembly
   class Utils
 
-
+    WFS  = Dor::WorkflowService
+    REPO = 'dor'
+    
     # Get the staging directory tree given a druid, and optionally prepend a basepath.
     # Deprecated and should not be needed anymore.
     #
@@ -172,18 +174,13 @@ module Assembly
     # @param [string] workflow name of workflow
     # @param [string] step name of step
     #
-    # @return [string] workflow step status
+    # @return [string] workflow step status, returns nil if no workflow found
     #
     # Example:
     #   puts Assembly::Utils.get_workflow_status('druid:aa000aa0001','assemblyWF','jp2-create')
     #   > "completed"
     def self.get_workflow_status(druid,workflow,step)
-      begin
-        result=Dor::WorkflowService.get_workflow_status('dor', druid, workflow, step)  
-      rescue
-        result='NOT FOUND'
-      end
-      return result
+      Dor::WorkflowService.get_workflow_status('dor', druid, workflow, step)  
     end
     
      # Cleanup a list of objects and associated files given a list of druids.  WARNING: VERY DESTRUCTIVE. 
@@ -517,14 +514,43 @@ module Assembly
       end  
     end
 
+    # Check if the object is full accessioned and ingested.
+    # This method only works when this gem is used in a project that is configured to connect to the workflow service.
+    #
+    # @param [string] pid the druid to operate on
+    #
+    # @return [boolean] if object is fully ingested   
+    # Example:
+    #   Assembly::Utils.is_ingested?('druid:oo000oo0001')
+    #   > false
     def self.is_ingested?(pid)
-      wfs  = Dor::WorkflowService
-      repo = 'dor'
-      return false unless wfs.get_lifecycle(repo, pid, 'accessioned')
-      return false if wfs.get_active_lifecycle(repo, pid, 'pipelined')
-      return false if wfs.get_active_lifecycle(repo, pid, 'submitted')
-      # Accessioned and archived.
-      return true
+      WFS.get_lifecycle(REPO, pid, 'accessioned') ? true : false
+    end
+
+    # Check if the object is on ingest hold
+    # This method only works when this gem is used in a project that is configured to connect to the workflow service.
+    #
+    # @param [string] pid the druid to operate on
+    #
+    # @return [boolean] if object is on ingest hold
+    # Example:
+    #   Assembly::Utils.ingest_hold?('druid:oo000oo0001')
+    #   > false
+    def self.ingest_hold?(pid)
+      WFS.get_workflow_status(REPO, pid, 'accessionWF','sdr-ingest-transfer') == 'hold'
+    end
+ 
+    # Check if the object is submitted
+    # This method only works when this gem is used in a project that is configured to connect to the workflow service.
+    #
+    # @param [string] pid the druid to operate on
+    #
+    # @return [boolean] if object is submitted   
+    # Example:
+    #   Assembly::Utils.is_submitted?('druid:oo000oo0001')
+    #   > false   
+    def self.is_submitted?(pid)
+      WFS.get_lifecycle(REPO, pid, 'submitted') == nil
     end
     
     # Reset the workflow states for a list of druids given a list of workflow names and steps.

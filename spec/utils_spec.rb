@@ -93,8 +93,8 @@ describe Assembly::Utils do
       File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml")).should be true
     end
   
-    it "should return NOT FOUND when the workflow state is not found in an object" do
-      Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create').should == "NOT FOUND"
+    it "should return nil when the workflow state is not found in an object" do
+      Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create').should be_nil
     end
   
     # it "should indicate if the specified workflow is defined in an APO object" do
