@@ -97,14 +97,14 @@ describe Assembly::Utils do
       Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create').should == "NOT FOUND"
     end
   
-    it "should indicate if the specified workflow is defined in an APO object" do
-      Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessionWF').should be true
-      Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessioning').should be true
-    end
-
-    it "should indicate if the specified workflow is not defined in an APO object" do
-      Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'crapsticks').should be false
-    end  
+    # it "should indicate if the specified workflow is defined in an APO object" do
+    #   Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessionWF').should be true
+    #   Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessioning').should be true
+    # end
+    # 
+    # it "should indicate if the specified workflow is not defined in an APO object" do
+    #   Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'crapsticks').should be false
+    # end  
 
     it "should indicate if the specified object is not an APO" do
       lambda{Assembly::Utils.apo_workflow_defined?(TEST_PID,'crapsticks')}.should raise_error 

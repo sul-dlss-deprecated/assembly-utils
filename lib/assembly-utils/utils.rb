@@ -509,6 +509,16 @@ module Assembly
       end  
     end
 
+    def self.is_ingested?(pid)
+      wfs  = Dor::WorkflowService
+      repo = 'dor'
+      return false unless wfs.get_lifecycle(repo, pid, 'accessioned')
+      return false if wfs.get_active_lifecycle(repo, pid, 'pipelined')
+      return false if wfs.get_active_lifecycle(repo, pid, 'submitted')
+      # Accessioned and archived.
+      return true
+    end
+    
     # Reset the workflow states for a list of druids given a list of workflow names and steps.
     # Provide a list of druids in an array, and a hash containing workflow names (e.g. 'assemblyWF' or 'accessionWF') as the keys, and arrays of steps
     # as the corresponding values (e.g. ['checksum-compute','jp2-create']) and they will all be reset to "waiting".
