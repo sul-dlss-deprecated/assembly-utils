@@ -1,6 +1,7 @@
 require 'net/ssh'
 require 'csv'
 require 'csv-mapper'
+require 'druid-tools'
 
 module Assembly
 
