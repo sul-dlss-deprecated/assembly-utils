@@ -28,8 +28,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'net-ssh-gateway'
   s.add_dependency 'dor-workflow-service', '>=1.3.1'
   
-  s.add_dependency 'activesupport', '>= 3.2.6' # 4 requires ruby 1.9.3
-  s.add_dependency 'activeresource', '>= 3.2.6' # 4 requires ruby 1.9.3
+  s.add_dependency 'activesupport', '~> 3' # 4 requires ruby 1.9.3
+  s.add_dependency 'activeresource','~> 3' # 4 requires ruby 1.9.3
 
   s.add_development_dependency "rspec", "~> 2.6"
   s.add_development_dependency "lyberteam-devel", '>= 1.0.1'

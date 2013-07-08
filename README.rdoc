@@ -35,6 +35,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.2.2 add a new method to bulk republish a list of druids, and a new parameter to datastreams bulk update to publish after updating
 - 1.2.3 add a new method to check the status of an object (is_ingested?)
 - 1.2.4 add some additional methods to check the state of an object
+- 1.2.5 update gemfile
 
 ==Running tests
 
