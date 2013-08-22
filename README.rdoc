@@ -36,6 +36,7 @@ Ruby gem of methods useful for assembly and accessioning. Contains classes to ma
 - 1.2.3 add a new method to check the status of an object (is_ingested?)
 - 1.2.4 add some additional methods to check the state of an object
 - 1.2.5 update gemfile
+- 1.2.6 update gemfile to newer version of dor-services gem
 
 ==Running tests
 

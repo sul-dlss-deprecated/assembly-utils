@@ -17,12 +17,12 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_dependency 'nokogiri', '1.5.10' # v1.6 will not work with ruby 1.8.7
+  s.add_dependency 'nokogiri', '~>1.5.6' # v1.6 will not work with ruby 1.8.7
   s.add_dependency 'csv-mapper'
   s.add_dependency 'fastercsv'
   s.add_dependency 'druid-tools'
   
-  s.add_dependency 'dor-services', '~>3.21.1' #v4 will not work with ruby 1.8.7
+  s.add_dependency 'dor-services', '~>3.25.1' #v4 will not work with ruby 1.8.7
   s.add_dependency 'lyber-core'
   s.add_dependency 'net-ssh-kerberos'
   s.add_dependency 'net-ssh-gateway'
