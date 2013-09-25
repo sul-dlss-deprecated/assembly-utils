@@ -7,8 +7,11 @@ module Assembly
     CONTENT_MD_FILE='contentMetadata.xml'
 
     # Default descriptive metadata file present at root of each object directory
-    DESC_MD_FILE='descMetadata.xml'
+     DESC_MD_FILE='descMetadata.xml'
 
+     # Default technical metadata file present at root of each object directory
+     TECHNICAL_MD_FILE='technicalMetadata.xml'
+    
      # Defaut DOR workspace directory
      DOR_WORKSPACE='/dor/workspace'
      
