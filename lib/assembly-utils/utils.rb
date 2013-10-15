@@ -23,10 +23,9 @@ module Assembly
     # Example:
     #   puts Assembly::Utils.get_staging_path('aa000aa0001','tmp')
     #   > "tmp/aa/000/aa/0001"
-    def self.get_staging_path(pid,base_path='')
+    def self.get_staging_path(pid,base_path=nil)
       d=DruidTools::Druid.new(pid,base_path)
       path=File.dirname(d.path)
-      path.slice!(0) if base_path=='' && path[0]==47 # remove first / if base_path is empty
       return path
     end
 
@@ -664,7 +663,9 @@ module Assembly
     #   > ['aa000aa0001','aa000aa0002']
     def self.get_druids_from_log(progress_log_file,completed=true)
        druids=[]
-       YAML.each_document(Assembly::Utils.read_file(progress_log_file)) { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}  
+       docs = YAML.load_stream(Assembly::Utils.read_file(progress_log_file))
+       docs = docs.documents if docs.respond_to? :documents
+       docs.each { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}   
        return druids
     end
 
