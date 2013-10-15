@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'yaml'
 CERT_DIR = File.join(File.dirname(__FILE__), ".", "certs")
 
 environment  = ENV['ENVIRONMENT'] || ENV['ROBOT_ENVIRONMENT'] || ENV['RAILS_ENV'] || 'development'
