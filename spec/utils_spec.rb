@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 describe Assembly::Utils do
   
   it "should compute the correct staging path given a druid" do
@@ -53,6 +55,7 @@ describe Assembly::Utils do
   describe "dor-only-tests" do
 
     before(:all) do
+      delete_test_object rescue nil
       load_test_object
     end
 
@@ -62,6 +65,7 @@ describe Assembly::Utils do
     end
         
     it "should find druids by source ID" do
+      Dor::SearchService.should_receive(:query_by_id).with('testing-assembly-utils-gem').and_return TEST_PID
       druids=Assembly::Utils.get_druids_by_sourceid(['testing-assembly-utils-gem'])
       druids.should == [TEST_PID]
     end
@@ -71,7 +75,6 @@ describe Assembly::Utils do
       datastream="test"
       druids=[TEST_PID]
       Assembly::Utils.replace_datastreams(druids,datastream,new_content)
-      Dor.find(TEST_PID).update_index
       obj = Dor::Item.find(TEST_PID)
       obj.datastreams[datastream].content.should =~ /<tag>stuff<\/tag>/
     end
@@ -82,7 +85,6 @@ describe Assembly::Utils do
       datastream="test"
       druids=[TEST_PID]
       Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
-      Dor.find(TEST_PID).update_index
       obj = Dor::Item.find(TEST_PID)
       obj.datastreams[datastream].content.should =~ /<tag>new<\/tag>/
     end
