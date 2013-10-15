@@ -703,18 +703,35 @@ module Assembly
       
       druid = doc[:id]
 
-	    label = doc[:objectLabel_t]
-			title=doc[:public_dc_title_t].nil? ? '' : doc[:public_dc_title_t].first
-			
-			if check_status_in_dor
-        accessioned = self.get_workflow_status(druid,'accessionWF','publish')=="completed"
-        shelved = self.get_workflow_status(druid,'accessionWF','shelve')=="completed"
-			else
-  	    accessioned = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?("accessionWF:publish:completed")
-  	    shelved = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?("accessionWF:shelve:completed")
+      if Solrizer::VERSION < '3.0'
+        label = doc[:objectLabel_t]
+        title=doc[:public_dc_title_t].nil? ? '' : doc[:public_dc_title_t].first
+
+        if check_status_in_dor
+          accessioned = self.get_workflow_status(druid,'accessionWF','publish')=="completed"
+          shelved = self.get_workflow_status(druid,'accessionWF','shelve')=="completed"
+        else
+          accessioned = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?("accessionWF:publish:completed")
+          shelved = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?("accessionWF:shelve:completed")
+        end
+        source_id = doc[:source_id_t]
+        files=doc[:content_file_t]
+      else
+        label = doc[Solrizer.solr_name('objectLabel', :displayable)]
+        title = doc.fetch(Solrizer.solr_name('public_dc_title', :displayable), []).first || ''
+
+        if check_status_in_dor
+          accessioned = self.get_workflow_status(druid,'accessionWF','publish')=="completed"
+          shelved = self.get_workflow_status(druid,'accessionWF','shelve')=="completed"
+        else
+          accessioned = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?("accessionWF:publish:completed")
+          shelved = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?("accessionWF:shelve:completed")
+        end
+        source_id = doc[Solrizer.solr_name('source_id', :symbol)]
+        files=doc[Solrizer.solr_name('content_file', :symbol)]
+
       end
-	    source_id = doc[:source_id_t]
-		  files=doc[:content_file_t]
+
 		  if files.nil?
 				file_type_list=""
 				num_files=0
