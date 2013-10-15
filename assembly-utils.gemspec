@@ -17,22 +17,19 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ['lib']
 
-  s.add_dependency 'nokogiri', '~>1.5' # v1.6 will not work with ruby 1.8.7
+  s.add_dependency 'nokogiri'
   s.add_dependency 'csv-mapper'
   s.add_dependency 'fastercsv'
-  s.add_dependency 'druid-tools'
+  s.add_dependency 'druid-tools', ">= 0.2.6"
   
-  s.add_dependency 'dor-services', '~>3.25.1' #v4 will not work with ruby 1.8.7
+  s.add_dependency 'dor-services', ">= 3.25.1"
   s.add_dependency 'lyber-core'
-  s.add_dependency 'net-ssh-kerberos'
-  s.add_dependency 'net-ssh-gateway'
   s.add_dependency 'dor-workflow-service', '>=1.3.1'
   
-  s.add_dependency 'activesupport', '~> 3.2.6' # 4 requires ruby 1.9.3
-  s.add_dependency 'activeresource', '~> 3.2.6' # 4 requires ruby 1.9.3
+  s.add_dependency 'activesupport'
+  s.add_dependency 'activeresource'
 
   s.add_development_dependency "rspec", "~> 2.6"
-  s.add_development_dependency "lyberteam-devel", '>= 1.0.1'
   s.add_development_dependency "lyberteam-gems-devel", "> 1.0.0"
   s.add_development_dependency "yard"
   
