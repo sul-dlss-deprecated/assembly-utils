@@ -3,6 +3,11 @@ require 'csv'
 require 'csv-mapper'
 require 'druid-tools'
 
+begin
+require 'net/ssh/kerberos'
+rescue LoadError
+end
+
 module Assembly
 
 
@@ -255,7 +260,7 @@ module Assembly
       end
       begin
          # start up an SSH session if we are going to try and remove content from the stacks
-         ssh_session=Net::SSH.start(stacks_server,'lyberadmin') if steps.include?(:stacks) && defined?(stacks_server)
+         ssh_session=Net::SSH.start(stacks_server,'lyberadmin', :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive)) if steps.include?(:stacks) && defined?(stacks_server)
         
          druid_tree=DruidTools::Druid.new(pid).tree
          puts "Cleaning up #{pid}"
