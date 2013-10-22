@@ -91,6 +91,7 @@ describe Assembly::Utils do
   
     it "should export a PID to FOXML" do
       File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml")).should be false
+      Dir.mkdir(TEST_OUTPUT_DIR) unless Dir.exists?(TEST_OUTPUT_DIR)
       Assembly::Utils.export_objects(TEST_PID,TEST_OUTPUT_DIR)
       File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml")).should be true
     end
