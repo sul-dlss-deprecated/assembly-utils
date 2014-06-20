@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'yaml'
 CERT_DIR = File.join(File.dirname(__FILE__), ".", "certs")
 
 environment  = ENV['ENVIRONMENT'] || ENV['ROBOT_ENVIRONMENT'] || ENV['RAILS_ENV'] || 'development'
@@ -10,3 +9,5 @@ puts "RUNNING IN #{environment} mode"
 $LOAD_PATH.unshift(project_root + '/lib')
 
 require 'assembly-utils'
+
+Dor::WorkflowService.configure(Dor::Config.workflow.url)
