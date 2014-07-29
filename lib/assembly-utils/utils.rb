@@ -250,17 +250,9 @@ module Assembly
     # Example:
     #   Assembly::Utils.cleanup_object('druid:aa000aa0001',[:stacks,:dor,:stage,:symlinks,:workflows])
     def self.cleanup_object(pid,steps,dry_run=false)
-      case ENV['ROBOT_ENVIRONMENT']
-        when "test"
-          stacks_server="stacks-test"
-        when "production"
-          stacks_server="stacks"
-        when "development"
-          stacks_server="stacks-dev"
-      end
       begin
          # start up an SSH session if we are going to try and remove content from the stacks
-         ssh_session=Net::SSH.start(stacks_server,'lyberadmin', :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive)) if steps.include?(:stacks) && defined?(stacks_server)
+         ssh_session=Net::SSH.start(Dor::Config.stacks.host,Dor::Config.stacks.user, :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive)) if steps.include?(:stacks) && defined?(stacks_server)
         
          druid_tree=DruidTools::Druid.new(pid).tree
          puts "Cleaning up #{pid}"
