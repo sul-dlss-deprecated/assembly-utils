@@ -30,7 +30,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'activeresource'
 
   s.add_development_dependency "rspec", "~> 2.6"
-  s.add_development_dependency "lyberteam-gems-devel", "> 1.0.0"
   s.add_development_dependency "yard"
   
 end
