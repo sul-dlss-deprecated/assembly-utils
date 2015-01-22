@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'druid-tools', ">= 0.2.6"
   
   s.add_dependency 'dor-services', ">= 3.25.1"
-  s.add_dependency 'lyber-core'
   s.add_dependency 'dor-workflow-service', '>=1.3.1'
   
   s.add_dependency 'activesupport'
