@@ -45,6 +45,11 @@ You will need to be on the Stanford network (not wifi) or VPNed in to run the te
 
 bundle exec rspec spec
 
+==Deploynew new gem
+
+gem build assembly-utils.gemspec
+gem push assembly-utils-1.4.1.gem # update version as needed
+
 ==Connecting to DOR
 
 Some of the methods require a connection to DOR, which is not provided as part of this gem.  In order to connect to DOR, you will need
