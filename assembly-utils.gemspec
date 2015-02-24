@@ -27,10 +27,10 @@ Gem::Specification.new do |s|
   
   s.add_dependency 'activesupport'
   s.add_dependency 'activeresource'
-  s.add_dependency 'addressable', '2.3.5'
+  s.add_dependency 'addressable', '2.3.5' # avoids ERROR: lib/addressable/uri.rb:1659:in `normalized_fragment': can't modify frozen Addressable::URI (RuntimeError)
 
   s.add_development_dependency "rake"
-  s.add_development_dependency "rspec", "~> 3.0"
+  s.add_development_dependency "rspec", '~> 3.1'
   s.add_development_dependency "yard"
   
 end
