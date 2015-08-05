@@ -510,7 +510,7 @@ module Assembly
       end  
     end
 
-    # Check if the object is full accessioned and ingested.
+    # Check if the object is fully accessioned and ingested.
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
@@ -523,6 +523,19 @@ module Assembly
       WFS.get_lifecycle(REPO, pid, 'accessioned') ? true : false
     end
 
+    # Check if the object is currently in accessioning
+    # This method only works when this gem is used in a project that is configured to connect to the workflow service.
+    #
+    # @param [string] pid the druid to operate on
+    #
+    # @return [boolean] if object is currently in accessioning
+    # Example:
+    #   Assembly::Utils.in_accessioning?('druid:oo000oo0001')
+    #   > false
+    def self.in_accessioning?(pid)
+      WFS.get_active_lifecycle(REPO, pid, 'submitted') ? true : false
+    end
+    
     # Check if the object is on ingest hold
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
@@ -548,7 +561,33 @@ module Assembly
     def self.is_submitted?(pid)
       WFS.get_lifecycle(REPO, pid, 'submitted') == nil
     end
-    
+
+    # Check if the updates are allowed on the object
+    # This method only works when this gem is used in a project that is configured to connect to the workflow service.
+    #
+    # @param [string] pid the druid to operate on
+    #
+    # @return [boolean] if object can be versioned and updated   
+    # Example:
+    #   Assembly::Utils.updates_allowed?('druid:oo000oo0001')
+    #   > false 
+    def self.updates_allowed?(pid)
+      !self.in_accessioning?(pid) && self.is_ingested?(pid)
+    end
+
+    # Check if versioning is required for the object
+    # This method only works when this gem is used in a project that is configured to connect to the workflow service.
+    #
+    # @param [string] pid the druid to operate on
+    #
+    # @return [boolean] if object requires versioning
+    # Example:
+    #   Assembly::Utils.versioning_required?('druid:oo000oo0001')
+    #   > false     
+    def self.versioning_required?(pid)
+      !((!self.is_ingested?(pid) && self.ingest_hold?(pid)) || (!self.is_ingested?(pid) && !self.is_submitted?(pid))) 
+    end
+        
     # Reset the workflow states for a list of druids given a list of workflow names and steps.
     # Provide a list of druids in an array, and a hash containing workflow names (e.g. 'assemblyWF' or 'accessionWF') as the keys, and arrays of steps
     # as the corresponding values (e.g. ['checksum-compute','jp2-create']) and they will all be reset to "waiting".
