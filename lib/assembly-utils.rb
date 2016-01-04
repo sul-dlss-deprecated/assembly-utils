@@ -1,35 +1,33 @@
 module Assembly
+  # Base PURL URL
+  PURL_BASE_URL = 'http://purl.stanford.edu'
 
-    # Base PURL URL
-    PURL_BASE_URL = 'http://purl.stanford.edu'
+  # Default content metadata file present at root of each object directory
+  CONTENT_MD_FILE = 'contentMetadata.xml'
 
-    # Default content metadata file present at root of each object directory
-    CONTENT_MD_FILE = 'contentMetadata.xml'
+  # Default descriptive metadata file present at root of each object directory
+  DESC_MD_FILE = 'descMetadata.xml'
 
-    # Default descriptive metadata file present at root of each object directory
-     DESC_MD_FILE = 'descMetadata.xml'
+  # Default technical metadata file present at root of each object directory
+  TECHNICAL_MD_FILE = 'technicalMetadata.xml'
 
-     # Default technical metadata file present at root of each object directory
-     TECHNICAL_MD_FILE = 'technicalMetadata.xml'
+  # Defaut DOR workspace directory
+  DOR_WORKSPACE = '/dor/workspace'
 
-     # Defaut DOR workspace directory
-     DOR_WORKSPACE = '/dor/workspace'
+  # Default assembly directory, can be overwritten by the value set in the project specific YAML configuration
+  ASSEMBLY_WORKSPACE = '/dor/assembly'
 
-     # Default assembly directory, can be overwritten by the value set in the project specific YAML configuration
-     ASSEMBLY_WORKSPACE = '/dor/assembly'
+  # Assembly workflow name
+  ASSEMBLY_WF = 'assemblyWF'
 
-     # Assembly workflow name
-     ASSEMBLY_WF = 'assemblyWF'
-
-     # Assembly workflow steps, used for cleanup
-     ASSEMBLY_WF_STEPS = [
-       [ 'start-assembly',        'completed' ],
-       [ 'jp2-create',            'waiting'   ],
-       [ 'checksum-compute',      'waiting'   ],
-       [ 'exif-collect',          'waiting'   ],
-       [ 'accessioning-initiate', 'waiting'   ]
-     ]
-
+  # Assembly workflow steps, used for cleanup
+  ASSEMBLY_WF_STEPS = [
+    [ 'start-assembly',        'completed' ],
+    [ 'jp2-create',            'waiting'   ],
+    [ 'checksum-compute',      'waiting'   ],
+    [ 'exif-collect',          'waiting'   ],
+    [ 'accessioning-initiate', 'waiting'   ]
+  ]
 end
 
 require 'dor-services'

@@ -9,11 +9,8 @@ rescue LoadError
 end
 
 module Assembly
-
-
   # The Utils class contains methods to help with accessioning and assembly
   class Utils
-
     WFS  = Dor::WorkflowService
     REPO = 'dor'
 
@@ -28,10 +25,9 @@ module Assembly
     # Example:
     #   puts Assembly::Utils.get_staging_path('aa000aa0001','tmp')
     #   > "tmp/aa/000/aa/0001"
-    def self.get_staging_path(pid,base_path = nil)
-      d = DruidTools::Druid.new(pid,base_path)
-      path = File.dirname(d.path)
-      return path
+    def self.get_staging_path(pid, base_path = nil)
+      d = DruidTools::Druid.new(pid, base_path)
+      File.dirname(d.path)
     end
 
     # Insert the specified workflow into the specified object.
@@ -45,28 +41,27 @@ module Assembly
     # Example:
     #   puts Assembly::Utils.insert_workflow('druid:aa000aa0001','accessionWF')
     #   > true
-    def self.insert_workflow(pid,workflow,repo = 'dor')
-      url   = "#{Dor::Config.dor.service_root}/objects/#{pid}/apo_workflows/#{workflow}"
+    def self.insert_workflow(pid, workflow, repo = 'dor')
+      url = "#{Dor::Config.dor.service_root}/objects/#{pid}/apo_workflows/#{workflow}"
       result = RestClient.post url, {}
-      return ([200,201,202,204].include?(result.code) && result)
+      [200, 201, 202, 204].include?(result.code) && result
     end
 
     # Claim a specific druid as already used to be sure it won't get used again.
     # Not needed for normal purposes, only if you manually register something in Fedora Admin outside of DOR services gem.
     #
     # @param [String] pid druid pid (e.g. 'aa000aa0001')
-    #
     # @return [boolean] indicates success of web service call
     #
     # Example:
     #   puts Assembly::Utils.claim_druid('aa000aa0001')
     #   > true
     def self.claim_druid(pid)
-      sc    = Dor::Config.suri
-      url   = "#{sc.url}/suri2/namespaces/#{sc.id_namespace}"
-      rcr   = RestClient::Resource.new(url, :user => sc.user, :password => sc.pass)
-      resp  = rcr["identifiers/#{pid}"].put('')
-      return resp.code == '204'
+      sc   = Dor::Config.suri
+      url  = "#{sc.url}/suri2/namespaces/#{sc.id_namespace}"
+      rcr  = RestClient::Resource.new(url, :user => sc.user, :password => sc.pass)
+      resp = rcr["identifiers/#{pid}"].put('')
+      resp.code == '204'
     end
 
     # Force a full re-index of the supplied druid in solr and fedora.
@@ -113,10 +108,8 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to DOR
     #
     # @param [String] source_ids array of source ids to lookup
-    #
     # @return [array] druids
     # Example:
-    #
     #   puts Assembly::Utils.get_druids_by_sourceid(['revs-01','revs-02'])
     #   > ['druid:aa000aa0001','druid:aa000aa0002']
     def self.get_druids_by_sourceid(source_ids)
@@ -139,19 +132,18 @@ module Assembly
     #   Assembly::Utils.workflow_status(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:workflows=>[:assembly,:accession],:filename=>'output.csv')
     def self.workflow_status(params = {})
 
-      druids = params[:druids] || []
+      druids    = params[:druids] || []
       workflows = params[:workflows] || [:assembly]
-      filename = params[:filename] || ''
-
+      filename  = params[:filename] || ''
       accession_steps = %w(content-metadata	descriptive-metadata rights-metadata remediate-object shelve publish)
-      assembly_steps = %w(jp2-create checksum-compute exif-collect accessioning-initiate)
+      assembly_steps  = %w(jp2-create checksum-compute exif-collect accessioning-initiate)
 
       puts 'Generating report'
 
       csv = CSV.open(filename, 'w') if filename != ''
 
       header = ['druid']
-      header << assembly_steps if workflows.include?(:assembly)
+      header << assembly_steps  if workflows.include?(:assembly)
       header << accession_steps if workflows.include?(:accession)
       csv << header.flatten if filename != ''
       puts header.join(',')
@@ -204,8 +196,8 @@ module Assembly
      #   Assembly::Utils.cleanup(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:steps=>[:stacks,:dor,:stage,:symlinks,:workflows])
      def self.cleanup(params = {})
 
-       druids = params[:druids] || []
-       steps = params[:steps] || []
+       druids  = params[:druids]  || []
+       steps   = params[:steps]   || []
        dry_run = params[:dry_run] || false
 
        allowed_steps = {:stacks => 'This will remove all files from the stacks that were shelved for the objects',
@@ -342,7 +334,7 @@ module Assembly
     #   new_content='<xml><more nodes>this should be the whole datastream</more nodes></xml>'
     #   datastream='rightsMetadata'
     #   Assembly::Utils.replace_datastreams(druids,datastream,new_content)
-    def self.replace_datastreams(druids,datastream_name,new_content,publish = false)
+    def self.replace_datastreams(druids, datastream_name, new_content, publish = false)
       druids.each do |druid|
         obj = Dor::Item.find(druid)
         ds = obj.datastreams[datastream_name]
@@ -402,12 +394,10 @@ module Assembly
     #   Assembly::Utils.is_apo?('druid:oo000oo0001')
     # > true
     def self.is_apo?(druid)
-      begin
-        obj = Dor::Item.find(druid)
-        return obj.identityMetadata.objectType.first == 'adminPolicy'
-      rescue
-        return false
-      end
+      obj = Dor::Item.find(druid)
+      obj.identityMetadata.objectType.first == 'adminPolicy'
+    rescue
+      return false
     end
 
     # Update a specific datastream for a series of objects in DOR by searching and replacing content
@@ -418,17 +408,17 @@ module Assembly
     # @param [string] replace_content - the content to replace the found content with
     #
     # Example:
-    #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
-    #   find_content='FooBarBaz'
-    #   replace_content='Stanford Rules'
-    #   datastream='rightsMetadata'
-    #   Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
-    def self.update_datastreams(druids,datastream_name,find_content,replace_content)
+    #   druids = %w{druid:aa111aa1111 druid:bb222bb2222}
+    #   find_content = 'FooBarBaz'
+    #   replace_content = 'Stanford Rules'
+    #   datastream = 'rightsMetadata'
+    #   Assembly::Utils.update_datastreams(druids, datastream, find_content, replace_content)
+    def self.update_datastreams(druids, datastream_name, find_content, replace_content)
       druids.each do |druid|
         obj = Dor::Item.find(druid)
         ds = obj.datastreams[datastream_name]
         if ds
-          updated_content = ds.content.gsub(find_content,replace_content)
+          updated_content = ds.content.gsub(find_content, replace_content)
           ds.content = updated_content
           ds.save
           puts "updated #{datastream_name} for #{druid}"
@@ -444,15 +434,11 @@ module Assembly
     #
     # @return [boolean] if deletion succeed or not
     def self.unregister(pid)
-
-      begin
-        Assembly::Utils.delete_all_workflows pid
-        Assembly::Utils.delete_from_dor pid
-        return true
-      rescue
-        return false
-      end
-
+      Assembly::Utils.delete_all_workflows pid
+      Assembly::Utils.delete_from_dor pid
+      true
+    rescue
+      return false
     end
 
     # Set the workflow step for the given PID to an error state
@@ -463,7 +449,7 @@ module Assembly
     def self.set_workflow_step_to_error(pid, step)
       wf_name = Assembly::ASSEMBLY_WF
       msg     = 'Integration testing'
-      params  =  ['dor', pid, wf_name, step, msg]
+      params  = ['dor', pid, wf_name, step, msg]
       resp    = Dor::WorkflowService.update_workflow_error_status *params
       raise 'update_workflow_error_status() returned false.' unless resp == true
     end
@@ -514,7 +500,6 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
-    #
     # @return [boolean] if object is fully ingested
     # Example:
     #   Assembly::Utils.is_ingested?('druid:oo000oo0001')
@@ -527,7 +512,6 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
-    #
     # @return [boolean] if object is currently in accessioning
     # Example:
     #   Assembly::Utils.in_accessioning?('druid:oo000oo0001')
@@ -540,7 +524,6 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
-    #
     # @return [boolean] if object is on ingest hold
     # Example:
     #   Assembly::Utils.ingest_hold?('druid:oo000oo0001')
@@ -566,7 +549,6 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
-    #
     # @return [boolean] if object can be versioned and updated
     # Example:
     #   Assembly::Utils.updates_allowed?('druid:oo000oo0001')
@@ -579,7 +561,6 @@ module Assembly
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
-    #
     # @return [boolean] if object requires versioning
     # Example:
     #   Assembly::Utils.versioning_required?('druid:oo000oo0001')
@@ -599,24 +580,24 @@ module Assembly
     #   * :state => a string for the name of the state to reset to, defaults to 'waiting' (could be 'completed' for example)
     #
     # Example:
-    #   druids=['druid:aa111aa1111','druid:bb222bb2222']
-    #   steps={'assemblyWF'  => ['checksum-compute'],'accessionWF' => ['content-metadata','descriptive-metadata']}
-    #   Assembly::Utils.reset_workflow_states(:druids=>druids,:steps=>steps)
+    #   druids = ['druid:aa111aa1111', 'druid:bb222bb2222']
+    #   steps = {'assemblyWF' => ['checksum-compute'], 'accessionWF' => ['content-metadata', 'descriptive-metadata']}
+    #   Assembly::Utils.reset_workflow_states(:druids => druids, :steps => steps)
     def self.reset_workflow_states(params = {})
-      druids = params[:druids] || []
-      workflows = params[:steps] || {}
-      state = params[:state] || 'waiting'
+      druids    = params[:druids] || []
+      workflows = params[:steps]  || {}
+      state     = params[:state]  || 'waiting'
       druids.each do |druid|
         puts "** #{druid}"
         begin
-            workflows.each do |workflow,steps|
-              steps.each do |step|
-                puts "Updating #{workflow}:#{step} to #{state}"
-                Dor::WorkflowService.update_workflow_status 'dor',druid,workflow, step, state
-              end
+          workflows.each do |workflow, steps|
+            steps.each do |step|
+              puts "Updating #{workflow}:#{step} to #{state}"
+              Dor::WorkflowService.update_workflow_status 'dor',druid,workflow, step, state
             end
-          rescue Exception => e
-            puts "an error occurred trying to update workflows for #{druid} with message #{e.message}"
+          end
+        rescue Exception => e
+          puts "an error occurred trying to update workflows for #{druid} with message #{e.message}"
         end
       end
     end
@@ -638,7 +619,7 @@ module Assembly
         druid = "druid:#{druid}" unless druid.include?('druid:')
         druids << druid
       end
-      return druids
+      druids
     end
 
     # Get a list of druids that have errored out in a particular workflow and step
@@ -651,21 +632,18 @@ module Assembly
     # e.g.
     # result=Assembly::Utils.get_errored_objects_for_workstep('accessionWF','content-metadata','Project : Revs')
     # => {"druid:qd556jq0580"=>"druid:qd556jq0580 - Item error; caused by #<Rubydora::FedoraInvalidRequest: Error modifying datastream contentMetadata for druid:qd556jq0580. See logger for details>"}
-    def self.get_errored_objects_for_workstep workflow, step, tag = ''
-      result = Dor::WorkflowService.get_errored_objects_for_workstep workflow,step,'dor'
-      if tag == ''
-        return result
-      else
-        filtered_result = {}
-        result.each do |druid,error|
-          begin
-            item = Dor::Item.find(druid)
-            filtered_result.merge!(druid => error) if item.tags.include? tag
-          rescue
-          end
+    def self.get_errored_objects_for_workstep(workflow, step, tag = '')
+      result = Dor::WorkflowService.get_errored_objects_for_workstep workflow, step, 'dor'
+      return result if tag == ''
+      filtered_result = {}
+      result.each do |druid, error|
+        begin
+          item = Dor::Item.find(druid)
+          filtered_result.merge!(druid => error) if item.tags.include? tag
+        rescue
         end
-        return filtered_result
       end
+      filtered_result
     end
 
     # Reset any objects in a specific workflow step and state that have errored out back to waiting
@@ -679,11 +657,11 @@ module Assembly
     # result=Assembly::Utils.reset_errored_objects_for_workstep('accessionWF','content-metadata')
     # => {"druid:qd556jq0580"=>"druid:qd556jq0580 - Item error; caused by #<Rubydora::FedoraInvalidRequest: Error modifying datastream contentMetadata for druid:qd556jq0580. See logger for details>"}
     def self.reset_errored_objects_for_workstep workflow, step, tag = ''
-      result = self.get_errored_objects_for_workstep workflow,step,tag
+      result = self.get_errored_objects_for_workstep workflow, step, tag
       druids = []
-      result.each {|k,v| druids << k}
-      self.reset_workflow_states(:druids => druids,:steps => {workflow => [step]}) if druids.size > 0
-      return result
+      result.each {|k, v| druids << k}
+      self.reset_workflow_states(:druids => druids, :steps => {workflow => [step]}) if druids.size > 0
+      result
     end
 
     # Read in a list of druids from a pre-assembly progress load file and load into an array.
@@ -697,12 +675,12 @@ module Assembly
     #   druids=Assembly::Utils.get_druids_from_log('/dor/preassembly/sohp_accession_log.yaml')
     #   puts druids
     #   > ['aa000aa0001','aa000aa0002']
-    def self.get_druids_from_log(progress_log_file,completed = true)
+    def self.get_druids_from_log(progress_log_file, completed = true)
        druids = []
        docs = YAML.load_stream(Assembly::Utils.read_file(progress_log_file))
        docs = docs.documents if docs.respond_to? :documents
        docs.each { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}
-       return druids
+       druids
     end
 
     # Read in a YAML configuration file from disk and return a hash
@@ -723,10 +701,9 @@ module Assembly
     # Read in a file from disk
     #
     # @param [string] filename to read
-    #
     # @return [string] file contents as a string
     def self.read_file(filename)
-      return File.readable?(filename) ? IO.read(filename) : ''
+      File.readable?(filename) ? IO.read(filename) : ''
     end
 
     # Used by the completion_report and project_tag_report in the pre-assembly project
@@ -735,8 +712,7 @@ module Assembly
     # @param [boolean] check_status_in_dor indicates if we should check for the workflow states in dor or trust SOLR is up to date (defaults to false)
     #
     # @return [string] a comma delimited row for the report
-    def self.solr_doc_parser(doc,check_status_in_dor = false)
-
+    def self.solr_doc_parser(doc, check_status_in_dor = false)
       druid = doc[:id]
 
       if Solrizer::VERSION < '3.0'
@@ -744,28 +720,27 @@ module Assembly
         title = doc[:public_dc_title_t].nil? ? '' : doc[:public_dc_title_t].first
 
         if check_status_in_dor
-          accessioned = self.get_workflow_status(druid,'accessionWF','publish') == 'completed'
-          shelved = self.get_workflow_status(druid,'accessionWF','shelve') == 'completed'
+          accessioned = self.get_workflow_status(druid,'accessionWF', 'publish') == 'completed'
+          shelved     = self.get_workflow_status(druid,'accessionWF', 'shelve' ) == 'completed'
         else
           accessioned = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?('accessionWF:publish:completed')
-          shelved = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?('accessionWF:shelve:completed')
+          shelved     = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?('accessionWF:shelve:completed')
         end
         source_id = doc[:source_id_t]
-        files = doc[:content_file_t]
+        files     = doc[:content_file_t]
       else
         label = doc[Solrizer.solr_name('objectLabel', :displayable)]
         title = doc.fetch(Solrizer.solr_name('public_dc_title', :displayable), []).first || ''
 
         if check_status_in_dor
-          accessioned = self.get_workflow_status(druid,'accessionWF','publish') == 'completed'
-          shelved = self.get_workflow_status(druid,'accessionWF','shelve') == 'completed'
+          accessioned = self.get_workflow_status(druid, 'accessionWF', 'publish') == 'completed'
+          shelved     = self.get_workflow_status(druid, 'accessionWF', 'shelve' ) == 'completed'
         else
           accessioned = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?('accessionWF:publish:completed')
-          shelved = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?('accessionWF:shelve:completed')
+          shelved     = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?('accessionWF:shelve:completed')
         end
         source_id = doc[Solrizer.solr_name('source_id', :symbol)]
-        files = doc[Solrizer.solr_name('content_file', :symbol)]
-
+        files     = doc[Solrizer.solr_name('content_file', :symbol)]
       end
 
       if files.nil?
@@ -777,16 +752,14 @@ module Assembly
         file_types = Hash.new(0)
         unless num_files == 0
           files.each {|file| file_types[File.extname(file)] += 1}
-          file_type_list = file_types.map{|k,v| "#{k}=#{v}"}.join(' | ')
+          file_type_list = file_types.map{|k, v| "#{k}=#{v}"}.join(' | ')
         end
       end
 
       purl_link = ''
       val = druid.split(/:/).last
       purl_link = File.join(Assembly::PURL_BASE_URL, val)
-
-      return  [druid, label, title, source_id, accessioned, shelved, purl_link, num_files,file_type_list]
-
+      [druid, label, title, source_id, accessioned, shelved, purl_link, num_files, file_type_list]
     end
 
     # Takes a hash data structure and recursively converts all hash keys from strings to symbols.
@@ -796,8 +769,8 @@ module Assembly
     # @return [hash] a hash with all keys converted from strings to symbols
     #
     # Example:
-    #   Assembly::Utils.symbolize_keys({'dude'=>'is cool','i'=>'am too'})
-    #   > {:dude=>"is cool", :i=>"am too"}
+    #   Assembly::Utils.symbolize_keys({'dude' => 'is cool', 'i' => 'am too'})
+    #   > {:dude => "is cool", :i => "am too"}
     def self.symbolize_keys(h)
       if h.instance_of? Hash
         h.inject({}) { |hh,(k,v)| hh[k.to_sym] = symbolize_keys(v); hh }
@@ -809,20 +782,16 @@ module Assembly
     end
 
     # Takes a hash and converts its string values to symbols -- not recursively.
-    #
     # @param [hash] h hash
-    #
-    # @return [hash] a hash with all keys converted from strings to symbols
-    #
+    # @return [hash] a hash with all values converted from strings to symbols
     # Example:
     #   Assembly::Utils.values_to_symbols!({'dude'=>'iscool','i'=>'amtoo'})
     #   > {"i"=>:amtoo, "dude"=>:iscool}
     def self.values_to_symbols!(h)
-      h.each { |k,v| h[k] = v.to_sym if v.class == String }
+      h.each { |k, v| h[k] = v.to_sym if v.class == String }
     end
 
     # Removes any duplicate tags within each druid
-    #
     # @param [array] druids - an array of druids
     def self.remove_duplicate_tags(druids)
       druids.each do |druid|
@@ -842,7 +811,6 @@ module Assembly
 
     private
     # Used by the cleanup to ask user for confirmation of each step.  Any response other than 'yes' results in the raising of an error
-    #
     # @param [string] message the message to show to a user
     #
     def self.confirm(message)
