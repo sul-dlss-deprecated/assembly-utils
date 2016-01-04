@@ -23,11 +23,6 @@ Lint/BlockAlignment:
 Lint/DefEndAlignment:
   Enabled: false
 
-# Offense count: 1
-Lint/DuplicateMethods:
-  Exclude:
-    - 'lib/assembly-utils/utils.rb'
-
 # Offense count: 2
 Lint/HandleExceptions:
   Exclude:
