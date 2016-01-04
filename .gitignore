@@ -11,3 +11,4 @@ pkg/*
 tags
 tmp
 .yardoc/*
+workflow_service.log*

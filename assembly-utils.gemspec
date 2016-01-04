@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'fastercsv'
   s.add_dependency 'druid-tools', ">= 0.2.6"
   
-  s.add_dependency 'dor-services', "~> 4.19"
+  s.add_dependency 'dor-services', "~> 5.3"
   s.add_dependency 'dor-workflow-service', '>=1.3.1'
   
   s.add_dependency 'activesupport'
