@@ -257,9 +257,9 @@ module Assembly
            path_to_symlinks << File.join(Assembly::DOR_WORKSPACE,druid_tree)
            path_to_symlinks << Assembly::Utils.get_staging_path(pid,Assembly::DOR_WORKSPACE)
            path_to_symlinks.each do |path|
-             if File::directory?(path)
+             if File.directory?(path)
                puts "-- deleting folder #{path} (WARNING: should have been a symlink)"
-               FileUtils::rm_rf path unless dry_run
+               FileUtils.rm_rf path unless dry_run
              elsif File.symlink?(path)
                puts "-- deleting symlink #{path}"
                File.delete(path) unless dry_run
@@ -271,7 +271,7 @@ module Assembly
          if steps.include?(:stage)
            path_to_content = Assembly::Utils.get_staging_path(pid,Assembly::ASSEMBLY_WORKSPACE)
            puts "-- deleting folder #{path_to_content}"
-           FileUtils.rm_rf path_to_content if !dry_run && File.exists?(path_to_content)
+           FileUtils.rm_rf path_to_content if !dry_run && File.exist?(path_to_content)
          end
          if steps.include?(:stacks)
            path_to_content = Dor::DigitalStacksService.stacks_storage_dir(pid)
@@ -355,10 +355,10 @@ module Assembly
     # Republish a list of druids.  Only works when run from a server with access rights to the stacks (e.g. lyberservices-prod)
     #
     # @param [array] druids - an array of druids
-     #
-     # Example:
-     #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
-     #   Assembly::Utils.republish(druids)
+    #
+    # Example:
+    #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
+    #   Assembly::Utils.republish(druids)
     def self.republish(druids)
       druids.each do |druid|
         obj = Dor::Item.find(druid)
@@ -542,7 +542,7 @@ module Assembly
     #   Assembly::Utils.is_submitted?('druid:oo000oo0001')
     #   > false
     def self.is_submitted?(pid)
-      WFS.get_lifecycle(REPO, pid, 'submitted') == nil
+      WFS.get_lifecycle(REPO, pid, 'submitted').nil?
     end
 
     # Check if the updates are allowed on the object
@@ -796,7 +796,7 @@ module Assembly
     def self.remove_duplicate_tags(druids)
       druids.each do |druid|
         i = Dor::Item.find(druid)
-        if i and i.tags.size > 1 # multiple tags
+        if i && i.tags.size > 1 # multiple tags
           i.tags.each do |tag|
             if (i.tags.select {|t| t == tag}).size > 1 # tag is duplicate
               i.remove_tag(tag)
@@ -810,6 +810,7 @@ module Assembly
     end
 
     private
+
     # Used by the cleanup to ask user for confirmation of each step.  Any response other than 'yes' results in the raising of an error
     # @param [string] message the message to show to a user
     #

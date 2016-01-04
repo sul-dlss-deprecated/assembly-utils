@@ -90,10 +90,10 @@ describe Assembly::Utils do
     end
 
     it 'should export a PID to FOXML', :type => 'integration' do
-      expect(File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml"))).to be false
-      Dir.mkdir(TEST_OUTPUT_DIR) unless Dir.exists?(TEST_OUTPUT_DIR)
+      expect(File.exist?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml"))).to be false
+      Dir.mkdir(TEST_OUTPUT_DIR) unless Dir.exist?(TEST_OUTPUT_DIR)
       Assembly::Utils.export_objects(TEST_PID,TEST_OUTPUT_DIR)
-      expect(File.exists?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml"))).to be true
+      expect(File.exist?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml"))).to be true
     end
 
     it 'should return nil when the workflow state is not found in an object', :type => 'integration' do
