@@ -328,22 +328,6 @@ Style/SpaceAfterComma:
     - 'spec/spec_helper.rb'
     - 'spec/utils_spec.rb'
 
-# Offense count: 12
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/SpaceAroundEqualsInParameterDefault:
-  Enabled: false
-
-# Offense count: 110
-# Cop supports --auto-correct.
-# Configuration parameters: MultiSpaceAllowedForOperators.
-Style/SpaceAroundOperators:
-  Exclude:
-    - 'lib/assembly-utils.rb'
-    - 'lib/assembly-utils/utils.rb'
-    - 'spec/spec_helper.rb'
-    - 'spec/utils_spec.rb'
-
 # Offense count: 2
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
@@ -367,45 +351,3 @@ Style/SpaceInsideBrackets:
 # Configuration parameters: EnforcedStyle, EnforcedStyleForEmptyBraces, SupportedStyles.
 Style/SpaceInsideHashLiteralBraces:
   Enabled: false
-
-# Offense count: 62
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/StringLiterals:
-  Enabled: false
-
-# Offense count: 24
-# Cop supports --auto-correct.
-Style/Tab:
-  Exclude:
-    - 'lib/assembly-utils/utils.rb'
-
-# Offense count: 2
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/TrailingBlankLines:
-  Exclude:
-    - 'Gemfile'
-    - 'spec/spec_helper.rb'
-
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyleForMultiline, SupportedStyles.
-Style/TrailingComma:
-  Exclude:
-    - 'lib/assembly-utils.rb'
-
-# Offense count: 117
-# Cop supports --auto-correct.
-Style/TrailingWhitespace:
-  Exclude:
-    - 'assembly-utils.gemspec'
-    - 'lib/assembly-utils.rb'
-    - 'lib/assembly-utils/utils.rb'
-    - 'lib/assembly-utils/version.rb'
-
-# Offense count: 2
-# Cop supports --auto-correct.
-Style/UnneededPercentQ:
-  Exclude:
-    - 'assembly-utils.gemspec'
