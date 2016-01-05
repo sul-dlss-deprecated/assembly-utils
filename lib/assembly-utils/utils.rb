@@ -4,7 +4,7 @@ require 'csv-mapper'
 require 'druid-tools'
 
 begin
-require 'net/ssh/kerberos'
+  require 'net/ssh/kerberos'
 rescue LoadError
 end
 
@@ -71,7 +71,7 @@ module Assembly
     #
     # Example:
     #  Assembly::Utils.export_objects(['druid:aa000aa0001','druid:bb000bb0001'],'/tmp')
-    def self.export_objects(pids,output_dir)
+    def self.export_objects(pids, output_dir)
       pids = [pids] if pids.class == String
       pids.each {|pid| ActiveFedora::FixtureExporter.export_to_path(pid, output_dir)}
     end
@@ -86,7 +86,7 @@ module Assembly
       Dir.chdir(source_dir)
       files = Dir.glob('*.foxml.xml')
       files.each do |file|
-        pid = ActiveFedora::FixtureLoader.import_to_fedora(File.join(source_dir,file))
+        pid = ActiveFedora::FixtureLoader.import_to_fedora(File.join(source_dir, file))
         ActiveFedora::FixtureLoader.index(pid)
       end
     end
@@ -137,8 +137,8 @@ module Assembly
 
       druids.each do |druid|
         output = [druid]
-        assembly_steps.each {|step| output << self.get_workflow_status(druid,'assemblyWF',step)} if workflows.include?(:assembly)
-        accession_steps.each {|step| output << self.get_workflow_status(druid,'accessionWF',step)} if workflows.include?(:accession)
+        assembly_steps.each  {|step| output << get_workflow_status(druid, 'assemblyWF', step )} if workflows.include?(:assembly)
+        accession_steps.each {|step| output << get_workflow_status(druid, 'accessionWF', step)} if workflows.include?(:accession)
         csv << output if filename != ''
         puts output.join(',')
       end
@@ -162,56 +162,53 @@ module Assembly
     # Example:
     #   puts Assembly::Utils.get_workflow_status('druid:aa000aa0001','assemblyWF','jp2-create')
     #   > "completed"
-    def self.get_workflow_status(druid,workflow,step)
+    def self.get_workflow_status(druid, workflow, step)
       Dor::WorkflowService.get_workflow_status('dor', druid, workflow, step)
     end
 
-     # Cleanup a list of objects and associated files given a list of druids.  WARNING: VERY DESTRUCTIVE.
-     # This method only works when this gem is used in a project that is configured to connect to DOR
-     #
-     # @param [Hash] params parameters specified as a hash, using symbols for options:
-     #   * :druids => array of druids to cleanup
-     #   * :steps => an array of steps, specified as symbols, indicating steps to be run, options are:
-     #                :stacks=This will remove all files from the stacks that were shelved for the objects
-     #                :dor=This will delete objects from Fedora
-     #                :stage=This will delete the staged content in the assembly workspace
-     #                :symlinks=This will remove the symlink from the dor workspace
-     #                :workflows=This will remove the assemblyWF and accessoiningWF workflows for this object
-     #   * :dry_run =>  do not actually clean up (defaults to false)
-     #
-     # Example:
-     #   Assembly::Utils.cleanup(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:steps=>[:stacks,:dor,:stage,:symlinks,:workflows])
-     def self.cleanup(params = {})
+    # Cleanup a list of objects and associated files given a list of druids.  WARNING: VERY DESTRUCTIVE.
+    # This method only works when this gem is used in a project that is configured to connect to DOR
+    #
+    # @param [Hash] params parameters specified as a hash, using symbols for options:
+    #   * :druids => array of druids to cleanup
+    #   * :steps => an array of steps, specified as symbols, indicating steps to be run, options are:
+    #                :stacks=This will remove all files from the stacks that were shelved for the objects
+    #                :dor=This will delete objects from Fedora
+    #                :stage=This will delete the staged content in the assembly workspace
+    #                :symlinks=This will remove the symlink from the dor workspace
+    #                :workflows=This will remove the assemblyWF and accessoiningWF workflows for this object
+    #   * :dry_run =>  do not actually clean up (defaults to false)
+    #
+    # Example:
+    #   Assembly::Utils.cleanup(:druids=>['druid:aa000aa0001','druid:aa000aa0002'],:steps=>[:stacks,:dor,:stage,:symlinks,:workflows])
+    def self.cleanup(params = {})
+      druids  = params[:druids]  || []
+      steps   = params[:steps]   || []
+      dry_run = params[:dry_run] || false
 
-       druids  = params[:druids]  || []
-       steps   = params[:steps]   || []
-       dry_run = params[:dry_run] || false
-
-       allowed_steps = {:stacks => 'This will remove all files from the stacks that were shelved for the objects',
+      allowed_steps = {:stacks => 'This will remove all files from the stacks that were shelved for the objects',
                       :dor => 'This will delete objects from Fedora',
                       :stage => "This will delete the staged content in #{Assembly::ASSEMBLY_WORKSPACE}",
                       :symlinks => "This will remove the symlink from #{Assembly::DOR_WORKSPACE}",
                       :workflows => 'This will remove the accessionWF and assemblyWF workflows'}
 
-       num_steps = 0
+      num_steps = 0
 
-       puts 'THIS IS A DRY RUN' if dry_run
+      puts 'THIS IS A DRY RUN' if dry_run
 
-       Assembly::Utils.confirm "Run on '#{ENV['ROBOT_ENVIRONMENT']}'? Any response other than 'y' or 'yes' will stop the cleanup now."
-       Assembly::Utils.confirm 'Are you really sure you want to run on production?  CLEANUP IS NOT REVERSIBLE' if ENV['ROBOT_ENVIRONMENT'] == 'production'
+      Assembly::Utils.confirm "Run on '#{ENV['ROBOT_ENVIRONMENT']}'? Any response other than 'y' or 'yes' will stop the cleanup now."
+      Assembly::Utils.confirm 'Are you really sure you want to run on production?  CLEANUP IS NOT REVERSIBLE' if ENV['ROBOT_ENVIRONMENT'] == 'production'
 
-       steps.each do |step|
-         if allowed_steps.keys.include?(step)
-           Assembly::Utils.confirm "Run step '#{step}'?  #{allowed_steps[step]}.  Any response other than 'y' or 'yes' will stop the cleanup now."
-           num_steps += 1 # count the valid steps found and agreed to
-         end
-       end
+      steps.each do |step|
+        if allowed_steps.keys.include?(step)
+          Assembly::Utils.confirm "Run step '#{step}'?  #{allowed_steps[step]}.  Any response other than 'y' or 'yes' will stop the cleanup now."
+          num_steps += 1 # count the valid steps found and agreed to
+        end
+      end
+      raise 'no valid steps specified for cleanup' if num_steps == 0
+      raise 'no druids provided' if druids.size == 0
 
-       raise 'no valid steps specified for cleanup' if num_steps == 0
-       raise 'no druids provided' if druids.size == 0
-
-       druids.each {|pid| Assembly::Utils.cleanup_object(pid,steps,dry_run)}
-
+      druids.each {|pid| Assembly::Utils.cleanup_object(pid, steps, dry_run)}
     end
 
     # Cleanup a single objects and associated files given a druid.  WARNING: VERY DESTRUCTIVE.
@@ -228,54 +225,53 @@ module Assembly
     #
     # Example:
     #   Assembly::Utils.cleanup_object('druid:aa000aa0001',[:stacks,:dor,:stage,:symlinks,:workflows])
-    def self.cleanup_object(pid,steps,dry_run = false)
-      begin
-         # start up an SSH session if we are going to try and remove content from the stacks
-         ssh_session = Net::SSH.start(Dor::Config.stacks.host,Dor::Config.stacks.user, :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive)) if steps.include?(:stacks) && defined?(stacks_server)
+    def self.cleanup_object(pid, steps, dry_run = false)
+      # start up an SSH session if we are going to try and remove content from the stacks
+      ssh_session = Net::SSH.start(Dor::Config.stacks.host, Dor::Config.stacks.user, :auth_methods => %w(gssapi-with-mic publickey hostbased password keyboard-interactive)) if steps.include?(:stacks) && defined?(stacks_server)
 
-         druid_tree = DruidTools::Druid.new(pid).tree
-         puts "Cleaning up #{pid}"
-         if steps.include?(:dor)
-           puts "-- deleting #{pid} from Fedora #{ENV['ROBOT_ENVIRONMENT']}"
-           Assembly::Utils.unregister(pid) unless dry_run
-         end
-         if steps.include?(:symlinks)
-           path_to_symlinks = []
-           path_to_symlinks << File.join(Assembly::DOR_WORKSPACE,druid_tree)
-           path_to_symlinks << Assembly::Utils.get_staging_path(pid,Assembly::DOR_WORKSPACE)
-           path_to_symlinks.each do |path|
-             if File.directory?(path)
-               puts "-- deleting folder #{path} (WARNING: should have been a symlink)"
-               FileUtils.rm_rf path unless dry_run
-             elsif File.symlink?(path)
-               puts "-- deleting symlink #{path}"
-               File.delete(path) unless dry_run
-             else
-               puts "-- Skipping #{path}: not a folder or symlink"
-             end
-           end
-         end
-         if steps.include?(:stage)
-           path_to_content = Assembly::Utils.get_staging_path(pid,Assembly::ASSEMBLY_WORKSPACE)
-           puts "-- deleting folder #{path_to_content}"
-           FileUtils.rm_rf path_to_content if !dry_run && File.exist?(path_to_content)
-         end
-         if steps.include?(:stacks)
-           path_to_content = Dor::DigitalStacksService.stacks_storage_dir(pid)
-           puts "-- removing files from the stacks on #{stacks_server} at #{path_to_content}"
-           ssh_session.exec!("rm -fr #{path_to_content}") unless dry_run
-         end
-         if steps.include?(:workflows)
-           puts "-- deleting #{pid} accessionWF and assemblyWF workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}"
-           unless dry_run
-             Dor::WorkflowService.delete_workflow('dor',pid,'accessionWF')
-             Dor::WorkflowService.delete_workflow('dor',pid,'assemblyWF')
-           end
-         end
-       rescue Exception => e
-         puts "** cleaning up failed for #{pid} with #{e.message}"
-       end
-       ssh_session.close if ssh_session
+      druid_tree = DruidTools::Druid.new(pid).tree
+      puts "Cleaning up #{pid}"
+      if steps.include?(:dor)
+        puts "-- deleting #{pid} from Fedora #{ENV['ROBOT_ENVIRONMENT']}"
+        Assembly::Utils.unregister(pid) unless dry_run
+      end
+      if steps.include?(:symlinks)
+        path_to_symlinks = []
+        path_to_symlinks << File.join(Assembly::DOR_WORKSPACE, druid_tree)
+        path_to_symlinks << Assembly::Utils.get_staging_path(pid, Assembly::DOR_WORKSPACE)
+        path_to_symlinks.each do |path|
+          if File.directory?(path)
+            puts "-- deleting folder #{path} (WARNING: should have been a symlink)"
+            FileUtils.rm_rf path unless dry_run
+          elsif File.symlink?(path)
+            puts "-- deleting symlink #{path}"
+            File.delete(path) unless dry_run
+          else
+            puts "-- Skipping #{path}: not a folder or symlink"
+          end
+        end
+      end
+      if steps.include?(:stage)
+        path_to_content = Assembly::Utils.get_staging_path(pid, Assembly::ASSEMBLY_WORKSPACE)
+        puts "-- deleting folder #{path_to_content}"
+        FileUtils.rm_rf path_to_content if !dry_run && File.exist?(path_to_content)
+      end
+      if steps.include?(:stacks)
+        path_to_content = Dor::DigitalStacksService.stacks_storage_dir(pid)
+        puts "-- removing files from the stacks on #{stacks_server} at #{path_to_content}"
+        ssh_session.exec!("rm -fr #{path_to_content}") unless dry_run
+      end
+      if steps.include?(:workflows)
+        puts "-- deleting #{pid} accessionWF and assemblyWF workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}"
+        unless dry_run
+          Dor::WorkflowService.delete_workflow('dor', pid, 'accessionWF')
+          Dor::WorkflowService.delete_workflow('dor', pid, 'assemblyWF')
+        end
+      end
+    rescue Exception => e
+      puts "** cleaning up failed for #{pid} with #{e.message}"
+    ensure
+      ssh_session.close if ssh_session
     end
 
     # Delete an object from DOR.
@@ -286,11 +282,9 @@ module Assembly
     # Example:
     #   Assembly::Utils.delete_from_dor('druid:aa000aa0001')
     def self.delete_from_dor(pid)
-
       Dor::Config.fedora.client["objects/#{pid}"].delete
       Dor::SearchService.solr.delete_by_id(pid)
       Dor::SearchService.solr.commit
-
     end
 
     # Quicky update rights metadata for any existing list of objects using default rights metadata pulled from the supplied APO
@@ -303,10 +297,10 @@ module Assembly
     #   druids=%w{druid:aa111aa1111 druid:bb222bb2222}
     #   apo_druid='druid:cc222cc2222'
     #   Assembly::Utils.update_rights_metadata(druids,apo_druid)
-    def self.update_rights_metadata(druids,apo_druid,publish = false)
+    def self.update_rights_metadata(druids, apo_druid, publish = false)
       apo = Dor::Item.find(apo_druid)
       rights_md = apo.datastreams['defaultObjectRights']
-      self.replace_datastreams(druids,'rightsMetadata',rights_md.content,publish)
+      replace_datastreams(druids, 'rightsMetadata', rights_md.content, publish)
     end
 
     # Replace a specific datastream for a series of objects in DOR with new content
@@ -364,7 +358,7 @@ module Assembly
     # Example:
     #   Assembly::Utils.apo_workflow_defined?('druid:oo000oo0001','assembly')
     # > true
-    def self.apo_workflow_defined?(druid,workflow)
+    def self.apo_workflow_defined?(druid, workflow)
       puts '************WARNING - THIS METHOD MAY NOT BE USEFUL ANYMORE SINCE WORKFLOWS ARE NO LONGER DEFINED IN THE APO**************'
       obj = Dor::Item.find(druid)
       raise 'object not an APO' if obj.identityMetadata.objectType.first != 'adminPolicy'
@@ -416,9 +410,7 @@ module Assembly
     end
 
     # Unregister a DOR object, which includes deleting it and deleting all its workflows
-    #
     # @param [string] pid of druid
-    #
     # @return [boolean] if deletion succeed or not
     def self.unregister(pid)
       Assembly::Utils.delete_all_workflows pid
@@ -429,7 +421,6 @@ module Assembly
     end
 
     # Set the workflow step for the given PID to an error state
-    #
     # @param [string] pid of druid
     # @param [string] step to set to error
     #
@@ -449,7 +440,7 @@ module Assembly
     # e.g.
     # Assembly::Utils.delete_all_workflows('druid:oo000oo0001')
     def self.delete_all_workflows(pid, repo = 'dor')
-      Dor::WorkflowService.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo,pid,workflow)}
+      Dor::WorkflowService.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo, pid, workflow)}
     end
 
     # Reindex the supplied PID in solr.
@@ -516,14 +507,13 @@ module Assembly
     #   Assembly::Utils.ingest_hold?('druid:oo000oo0001')
     #   > false
     def self.ingest_hold?(pid)
-      WFS.get_workflow_status(REPO, pid, 'accessionWF','sdr-ingest-transfer') == 'hold'
+      WFS.get_workflow_status(REPO, pid, 'accessionWF', 'sdr-ingest-transfer') == 'hold'
     end
 
     # Check if the object is submitted
     # This method only works when this gem is used in a project that is configured to connect to the workflow service.
     #
     # @param [string] pid the druid to operate on
-    #
     # @return [boolean] if object is submitted
     # Example:
     #   Assembly::Utils.is_submitted?('druid:oo000oo0001')
@@ -580,7 +570,7 @@ module Assembly
           workflows.each do |workflow, steps|
             steps.each do |step|
               puts "Updating #{workflow}:#{step} to #{state}"
-              Dor::WorkflowService.update_workflow_status 'dor',druid,workflow, step, state
+              Dor::WorkflowService.update_workflow_status 'dor', druid, workflow, step, state
             end
           end
         rescue Exception => e
@@ -593,11 +583,9 @@ module Assembly
     # Useful if you want to import a report from argo
     #
     # @param [string] filename of CSV that has a column called "druid"
-    #
     # @return [array] array of druids
-    #
     # Example:
-    #   Assembly::Utils.read_druids_from_file('download.csv') # ['druid:xxxxx','druid:yyyyy']
+    #   Assembly::Utils.read_druids_from_file('download.csv') # ['druid:xxxxx', 'druid:yyyyy']
     def self.read_druids_from_file(csv_filename)
       rows = CsvMapper.import(csv_filename) do read_attributes_from_file end
       druids = []
@@ -641,13 +629,13 @@ module Assembly
     #
     # @return [hash] hash of results that have been reset, with key has a druid, and value as the error message
     # e.g.
-    # result=Assembly::Utils.reset_errored_objects_for_workstep('accessionWF','content-metadata')
+    # result = Assembly::Utils.reset_errored_objects_for_workstep('accessionWF', 'content-metadata')
     # => {"druid:qd556jq0580"=>"druid:qd556jq0580 - Item error; caused by #<Rubydora::FedoraInvalidRequest: Error modifying datastream contentMetadata for druid:qd556jq0580. See logger for details>"}
-    def self.reset_errored_objects_for_workstep workflow, step, tag = ''
-      result = self.get_errored_objects_for_workstep workflow, step, tag
+    def self.reset_errored_objects_for_workstep(workflow, step, tag = '')
+      result = get_errored_objects_for_workstep workflow, step, tag
       druids = []
       result.each {|k, v| druids << k}
-      self.reset_workflow_states(:druids => druids, :steps => {workflow => [step]}) if druids.size > 0
+      reset_workflow_states(:druids => druids, :steps => {workflow => [step]}) if druids.size > 0
       result
     end
 
@@ -659,11 +647,11 @@ module Assembly
     # @return [array] list of druids
     #
     # Example:
-    #   druids=Assembly::Utils.get_druids_from_log('/dor/preassembly/sohp_accession_log.yaml')
+    #   druids = Assembly::Utils.get_druids_from_log '/dor/preassembly/sohp_accession_log.yaml'
     #   puts druids
-    #   > ['aa000aa0001','aa000aa0002']
+    #   > ['aa000aa0001', 'aa000aa0002']
     def self.get_druids_from_log(progress_log_file, completed = true)
-       druids = []
+      druids = []
        docs = YAML.load_stream(Assembly::Utils.read_file(progress_log_file))
        docs = docs.documents if docs.respond_to? :documents
        docs.each { |obj| druids << obj[:pid] if obj[:pre_assem_finished] == completed}
@@ -673,7 +661,6 @@ module Assembly
     # Read in a YAML configuration file from disk and return a hash
     #
     # @param [string] filename of YAML config file to read
-    #
     # @return [hash] configuration contents as a hash
     #
     # Example:
@@ -707,8 +694,8 @@ module Assembly
         title = doc[:public_dc_title_t].nil? ? '' : doc[:public_dc_title_t].first
 
         if check_status_in_dor
-          accessioned = self.get_workflow_status(druid,'accessionWF', 'publish') == 'completed'
-          shelved     = self.get_workflow_status(druid,'accessionWF', 'shelve' ) == 'completed'
+          accessioned = get_workflow_status(druid, 'accessionWF', 'publish') == 'completed'
+          shelved     = get_workflow_status(druid, 'accessionWF', 'shelve')  == 'completed'
         else
           accessioned = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?('accessionWF:publish:completed')
           shelved     = doc[:wf_wps_facet].nil? ? false : doc[:wf_wps_facet].include?('accessionWF:shelve:completed')
@@ -720,8 +707,8 @@ module Assembly
         title = doc.fetch(Solrizer.solr_name('public_dc_title', :displayable), []).first || ''
 
         if check_status_in_dor
-          accessioned = self.get_workflow_status(druid, 'accessionWF', 'publish') == 'completed'
-          shelved     = self.get_workflow_status(druid, 'accessionWF', 'shelve' ) == 'completed'
+          accessioned = get_workflow_status(druid, 'accessionWF', 'publish') == 'completed'
+          shelved     = get_workflow_status(druid, 'accessionWF', 'shelve')  == 'completed'
         else
           accessioned = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?('accessionWF:publish:completed')
           shelved     = doc.fetch(Solrizer.solr_name('wf_wps', :symbol), []).include?('accessionWF:shelve:completed')
@@ -743,7 +730,6 @@ module Assembly
         end
       end
 
-      purl_link = ''
       val = druid.split(/:/).last
       purl_link = File.join(Assembly::PURL_BASE_URL, val)
       [druid, label, title, source_id, accessioned, shelved, purl_link, num_files, file_type_list]
@@ -752,7 +738,6 @@ module Assembly
     # Takes a hash data structure and recursively converts all hash keys from strings to symbols.
     #
     # @param [hash] h hash
-    #
     # @return [hash] a hash with all keys converted from strings to symbols
     #
     # Example:
@@ -760,7 +745,7 @@ module Assembly
     #   > {:dude => "is cool", :i => "am too"}
     def self.symbolize_keys(h)
       if h.instance_of? Hash
-        h.inject({}) { |hh,(k,v)| hh[k.to_sym] = symbolize_keys(v); hh }
+        h.inject({}) { |hh, (k, v)| hh[k.to_sym] = symbolize_keys(v); hh }
       elsif h.instance_of? Array
         h.map { |v| symbolize_keys(v) }
       else
@@ -772,8 +757,8 @@ module Assembly
     # @param [hash] h hash
     # @return [hash] a hash with all values converted from strings to symbols
     # Example:
-    #   Assembly::Utils.values_to_symbols!({'dude'=>'iscool','i'=>'amtoo'})
-    #   > {"i"=>:amtoo, "dude"=>:iscool}
+    #   Assembly::Utils.values_to_symbols!({'dude' => 'iscool', 'i' => 'amtoo'})
+    #   > {'i' => :amtoo, 'dude' => :iscool}
     def self.values_to_symbols!(h)
       h.each { |k, v| h[k] = v.to_sym if v.class == String }
     end
@@ -783,22 +768,18 @@ module Assembly
     def self.remove_duplicate_tags(druids)
       druids.each do |druid|
         i = Dor::Item.find(druid)
-        if i && i.tags.size > 1 # multiple tags
-          i.tags.each do |tag|
-            if (i.tags.select {|t| t == tag}).size > 1 # tag is duplicate
-              i.remove_tag(tag)
-              i.add_tag(tag)
-              puts "Saving #{druid} to remove duplicate tag='#{tag}'"
-              i.save
-            end
-          end
+        next unless i && i.tags.size > 1 # multiple tags
+        i.tags.each do |tag|
+          next unless (i.tags.select {|t| t == tag}).size > 1 # tag is duplicate
+          i.remove_tag(tag)
+          i.add_tag(tag)
+          puts "Saving #{druid} to remove duplicate tag='#{tag}'"
+          i.save
         end
       end
     end
 
-    private
-
-    # Used by the cleanup to ask user for confirmation of each step.  Any response other than 'yes' results in the raising of an error
+    # Used by the cleanup to ask user for confirmation of each step.  Any response other than 'yes' raises an error
     # @param [string] message the message to show to a user
     #
     def self.confirm(message)
@@ -808,5 +789,4 @@ module Assembly
     end
 
   end
-
 end

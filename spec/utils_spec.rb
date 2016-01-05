@@ -8,18 +8,18 @@ describe Assembly::Utils do
   end
 
   it 'should compute the correct staging path given a druid and a pre-pend path' do
-    path = Assembly::Utils.get_staging_path('aa000aa0001','/tmp')
+    path = Assembly::Utils.get_staging_path('aa000aa0001', '/tmp')
     expect(path).to eq('/tmp/aa/000/aa/0001')
   end
 
   it 'should symbolize hash keys correctly' do
-    result = Assembly::Utils.symbolize_keys({'foo' => 'bar','ppuff' => 'doofus'})
-    expect(result).to eq({:foo => 'bar',:ppuff => 'doofus'})
+    result = Assembly::Utils.symbolize_keys({'foo' => 'bar', 'ppuff' => 'doofus'})
+    expect(result).to eq({:foo => 'bar', :ppuff => 'doofus'})
   end
 
   it 'should symbolize hash values correctly' do
-    result = Assembly::Utils.values_to_symbols!({'foo' => 'bar','ppuff' => 'doofus'})
-    expect(result).to eq({'foo' => :bar,'ppuff' => :doofus})
+    result = Assembly::Utils.values_to_symbols!({'foo' => 'bar', 'ppuff' => 'doofus'})
+    expect(result).to eq({'foo' => :bar, 'ppuff' => :doofus})
   end
 
   it 'should return a blank string if a file is not found to read in' do
@@ -35,12 +35,12 @@ describe Assembly::Utils do
   it 'should read in a list of completed druids from a progress log file' do
     progress_filename = 'spec/test_data/test_log.yaml'
     druids = Assembly::Utils.get_druids_from_log(progress_filename)
-    expect(druids).to eq(['druid:bc006dj2846','druid:bg598tg6338'])
+    expect(druids).to eq(['druid:bc006dj2846', 'druid:bg598tg6338'])
   end
 
   it 'should read in a list of failed druids from a progress log file' do
     progress_filename = 'spec/test_data/test_log.yaml'
-    druids = Assembly::Utils.get_druids_from_log(progress_filename,false)
+    druids = Assembly::Utils.get_druids_from_log(progress_filename, false)
     expect(druids).to eq(['druid:bh634sp8073'])
   end
 
@@ -74,7 +74,7 @@ describe Assembly::Utils do
       new_content = '<xml><tag>stuff</tag></xml>'
       datastream = 'test'
       druids = [TEST_PID]
-      Assembly::Utils.replace_datastreams(druids,datastream,new_content)
+      Assembly::Utils.replace_datastreams(druids, datastream, new_content)
       obj = Dor::Item.find(TEST_PID)
       expect(obj.datastreams[datastream].content).to match(/<tag>stuff<\/tag>/)
     end
@@ -84,33 +84,33 @@ describe Assembly::Utils do
       replace_content = 'new'
       datastream = 'test'
       druids = [TEST_PID]
-      Assembly::Utils.update_datastreams(druids,datastream,find_content,replace_content)
+      Assembly::Utils.update_datastreams(druids, datastream, find_content, replace_content)
       obj = Dor::Item.find(TEST_PID)
       expect(obj.datastreams[datastream].content).to match(/<tag>new<\/tag>/)
     end
 
     it 'should export a PID to FOXML', :type => 'integration' do
-      expect(File.exist?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml"))).to be false
+      expect(File.exist?(File.join(TEST_OUTPUT_DIR, "#{TEST_PID_FILENAME}.foxml.xml"))).to be false
       Dir.mkdir(TEST_OUTPUT_DIR) unless Dir.exist?(TEST_OUTPUT_DIR)
-      Assembly::Utils.export_objects(TEST_PID,TEST_OUTPUT_DIR)
-      expect(File.exist?(File.join(TEST_OUTPUT_DIR,"#{TEST_PID_FILENAME}.foxml.xml"))).to be true
+      Assembly::Utils.export_objects(TEST_PID, TEST_OUTPUT_DIR)
+      expect(File.exist?(File.join(TEST_OUTPUT_DIR, "#{TEST_PID_FILENAME}.foxml.xml"))).to be true
     end
 
     it 'should return nil when the workflow state is not found in an object', :type => 'integration' do
-      expect(Assembly::Utils.get_workflow_status(TEST_PID,'assemblyWF','jp2-create')).to be_nil
+      expect(Assembly::Utils.get_workflow_status(TEST_PID, 'assemblyWF', 'jp2-create')).to be_nil
     end
 
     it 'should indicate if the specified workflow is defined in an APO object', :type => 'integration' do
-      expect(Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessionWF')).to be true
-      expect(Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'accessioning')).to be true
+      expect(Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT, 'accessionWF')).to be true
+      expect(Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT, 'accessioning')).to be true
     end
 
     it 'should indicate if the specified workflow is not defined in an APO object', :type => 'integration' do
-      expect(Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT,'crapsticks')).to be false
+      expect(Assembly::Utils.apo_workflow_defined?(TEST_APO_OBJECT, 'crapsticks')).to be false
     end
 
     it 'should indicate if the specified object is not an APO', :type => 'integration' do
-      expect{Assembly::Utils.apo_workflow_defined?(TEST_PID,'crapsticks')}.to raise_error
+      expect{Assembly::Utils.apo_workflow_defined?(TEST_PID, 'crapsticks')}.to raise_error
     end
 
   end

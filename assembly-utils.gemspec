@@ -4,7 +4,7 @@ require 'assembly-utils/version'
 Gem::Specification.new do |s|
   s.name        = 'assembly-utils'
   s.version     = Assembly::Utils::VERSION
-  s.authors     = ['Peter Mangiafico','Monty Hindman']
+  s.authors     = ['Peter Mangiafico', 'Monty Hindman']
   s.email       = ['pmangiafico@stanford.edu']
   s.homepage    = ''
   s.summary     = 'Ruby gem of methods usesful for assembly and accessioning.'
