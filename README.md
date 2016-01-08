@@ -1,9 +1,9 @@
-[![Build Status](https://travis-ci.org/sul-dlss/assembly-utils.png?branch=master)](https://travis-ci.org/sul-dlss/assembly-utils) 
+[![Build Status](https://travis-ci.org/sul-dlss/assembly-utils.png?branch=master)](https://travis-ci.org/sul-dlss/assembly-utils)
 [![Dependency Status](https://gemnasium.com/sul-dlss/assembly-utils.svg)](https://gemnasium.com/sul-dlss/assembly-utils)
 
 # Assembly Utils Gem
 
-## Overview 
+## Overview
 Ruby gem of methods useful for assembly and accessioning. Contains classes to
 manipulate DOR objects for assembly and accessioning.
 
@@ -28,10 +28,10 @@ manipulate DOR objects for assembly and accessioning.
 *   1.1.0  small updates to some methods to depracate `apo_workflow` checking method
 *   1.1.1  add dor-workflow-service gem and convenience method to auto reset
     all objects in a specific state back to waiting
-*   1.1.2  allow `reset_workflow_state` to accept a state parameter 
+*   1.1.2  allow `reset_workflow_state` to accept a state parameter
 *   1.1.3  add a reindex method
 *   1.1.4  fixed delete object method to remove from solr too; fix cleanup
-    object method to remove both old and new style druid trees 
+    object method to remove both old and new style druid trees
 *   1.1.5 add new claim druid method
 *   1.1.6 add new step to remove workflows during `cleanup_object`
 *   1.1.7 change ordering of cleanup steps so if deleting workflow fails, the
@@ -48,7 +48,7 @@ manipulate DOR objects for assembly and accessioning.
 *   1.2.5-1.2.7  update gemfile to newer version of dor-services gem and other related/dependent gems
 *   1.2.8 add a new constant for technical metadata filename
 *   1.4.1-2 update gems and fix typos
-
+*   1.4.6 rubocop fixes, and other refactoring
 
 ## Running tests
 
