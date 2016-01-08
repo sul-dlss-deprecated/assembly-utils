@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/sul-dlss/assembly-utils.png?branch=master)](https://travis-ci.org/sul-dlss/assembly-utils) 
+[![Dependency Status](https://gemnasium.com/sul-dlss/assembly-utils.svg)](https://gemnasium.com/sul-dlss/assembly-utils)
+
 # Assembly Utils Gem
 
 ## Overview 
