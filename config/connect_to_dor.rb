@@ -1,4 +1,4 @@
-environment  = ENV['ENVIRONMENT'] ||= 'development'
+environment = ENV['ENVIRONMENT'] ||= 'development'
 GEM_ROOT = File.expand_path(File.dirname(__FILE__) + '/..')
 
 # Environment.
