@@ -19,14 +19,10 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'nokogiri'
   s.add_dependency 'csv-mapper'
-  s.add_dependency 'fastercsv'
   s.add_dependency 'druid-tools', '>= 0.2.6'
 
   s.add_dependency 'dor-services', '~> 5.3'
   s.add_dependency 'dor-workflow-service', '>=1.3.1'
-
-  s.add_dependency 'activesupport'
-  s.add_dependency 'activeresource'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 3.1'
