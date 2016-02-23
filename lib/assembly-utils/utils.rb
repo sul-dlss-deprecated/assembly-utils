@@ -1,6 +1,5 @@
 require 'net/ssh'
 require 'csv'
-require 'csv-mapper'
 require 'druid-tools'
 
 begin
@@ -587,14 +586,14 @@ module Assembly
     # Example:
     #   Assembly::Utils.read_druids_from_file('download.csv') # ['druid:xxxxx', 'druid:yyyyy']
     def self.read_druids_from_file(csv_filename)
-      rows = CsvMapper.import(csv_filename) do read_attributes_from_file end
-      druids = []
-      rows.each do |row|
-        druid = row.druid
+      return to_enum(:read_druids_from_file, csv_filename) unless block_given?
+
+      CSV.foreach(csv_filename, :headers => true) do |row|
+        druid = row['druid']
         druid = "druid:#{druid}" unless druid.include?('druid:')
-        druids << druid
+
+        yield druid
       end
-      druids
     end
 
     # Get a list of druids that have errored out in a particular workflow and step

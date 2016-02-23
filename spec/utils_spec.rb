@@ -115,4 +115,12 @@ describe Assembly::Utils do
 
   end
 
+  describe '.read_druids_from_file' do
+    it 'extracts the druids from a CSV file' do
+      druids = Assembly::Utils.read_druids_from_file(File.join(FIXTURES_DIR, 'druids.csv'))
+
+      expect(druids.to_a).to match_array ['druid:a', 'druid:b', 'druid:c']
+    end
+  end
+
 end
