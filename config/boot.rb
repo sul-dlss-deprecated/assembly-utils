@@ -9,5 +9,3 @@ puts "RUNNING IN #{environment} mode"
 $LOAD_PATH.unshift(project_root + '/lib')
 
 require 'assembly-utils'
-
-Dor::WorkflowService.configure(Dor::Config.workflow.url)
