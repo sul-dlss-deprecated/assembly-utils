@@ -2,7 +2,8 @@ TEST_PID = 'druid:dd999dd9999'
 TEST_PID_FILENAME = TEST_PID.tr(':', '_')
 TEST_APO_OBJECT = 'druid:qv648vd4392' # this is a real APO object in dor-dev that must exist for the tests to pass
 PATH = File.expand_path(File.dirname(__FILE__))
-TEST_OUTPUT_DIR = File.join(PATH, 'test_data', 'output')
+FIXTURES_DIR = File.join(PATH, 'test_data')
+TEST_OUTPUT_DIR = File.join(FIXTURES_DIR, 'output')
 ENV['ROBOT_ENVIRONMENT'] = 'development'
 
 require 'rspec'

@@ -1,6 +1,5 @@
 require 'net/ssh'
 require 'csv'
-require 'csv-mapper'
 require 'druid-tools'
 
 begin
@@ -11,7 +10,6 @@ end
 module Assembly
   # The Utils class contains methods to help with accessioning and assembly
   class Utils
-    WFS  = Dor::WorkflowService
     REPO = 'dor'
 
     # Get the staging directory tree given a druid, and optionally prepend a basepath.
@@ -163,7 +161,7 @@ module Assembly
     #   puts Assembly::Utils.get_workflow_status('druid:aa000aa0001','assemblyWF','jp2-create')
     #   > "completed"
     def self.get_workflow_status(druid, workflow, step)
-      Dor::WorkflowService.get_workflow_status('dor', druid, workflow, step)
+      Dor::Config.workflow.client.get_workflow_status('dor', druid, workflow, step)
     end
 
     # Cleanup a list of objects and associated files given a list of druids.  WARNING: VERY DESTRUCTIVE.
@@ -264,8 +262,8 @@ module Assembly
       if steps.include?(:workflows)
         puts "-- deleting #{pid} accessionWF and assemblyWF workflows from Fedora #{ENV['ROBOT_ENVIRONMENT']}"
         unless dry_run
-          Dor::WorkflowService.delete_workflow('dor', pid, 'accessionWF')
-          Dor::WorkflowService.delete_workflow('dor', pid, 'assemblyWF')
+          Dor::Config.workflow.client.delete_workflow('dor', pid, 'accessionWF')
+          Dor::Config.workflow.client.delete_workflow('dor', pid, 'assemblyWF')
         end
       end
     rescue Exception => e
@@ -428,7 +426,7 @@ module Assembly
       wf_name = Assembly::ASSEMBLY_WF
       msg     = 'Integration testing'
       params  = ['dor', pid, wf_name, step, msg]
-      resp    = Dor::WorkflowService.update_workflow_error_status *params
+      resp    = Dor::Config.workflow.client.update_workflow_error_status *params
       raise 'update_workflow_error_status() returned false.' unless resp == true
     end
 
@@ -440,7 +438,7 @@ module Assembly
     # e.g.
     # Assembly::Utils.delete_all_workflows('druid:oo000oo0001')
     def self.delete_all_workflows(pid, repo = 'dor')
-      Dor::WorkflowService.get_workflows(pid).each {|workflow| Dor::WorkflowService.delete_workflow(repo, pid, workflow)}
+      Dor::Config.workflow.client.get_workflows(pid).each {|workflow| Dor::Config.workflow.client.delete_workflow(repo, pid, workflow)}
     end
 
     # Reindex the supplied PID in solr.
@@ -460,7 +458,7 @@ module Assembly
       repo      = 'dor'
       wf        = 'assemblyWF'
       msg       = 'Integration testing'
-      wfs       = Dor::WorkflowService
+      wfs       = Dor::Config.workflow.client
       steps     = Assembly::ASSEMBLY_WF_STEPS.map { |s| s[0] }
       completed = steps[0]
 
@@ -483,7 +481,7 @@ module Assembly
     #   Assembly::Utils.is_ingested?('druid:oo000oo0001')
     #   > false
     def self.is_ingested?(pid)
-      WFS.get_lifecycle(REPO, pid, 'accessioned') ? true : false
+      Dor::Config.workflow.client.get_lifecycle(REPO, pid, 'accessioned') ? true : false
     end
 
     # Check if the object is currently in accessioning
@@ -495,7 +493,7 @@ module Assembly
     #   Assembly::Utils.in_accessioning?('druid:oo000oo0001')
     #   > false
     def self.in_accessioning?(pid)
-      WFS.get_active_lifecycle(REPO, pid, 'submitted') ? true : false
+      Dor::Config.workflow.client.get_active_lifecycle(REPO, pid, 'submitted') ? true : false
     end
 
     # Check if the object is on ingest hold
@@ -507,7 +505,7 @@ module Assembly
     #   Assembly::Utils.ingest_hold?('druid:oo000oo0001')
     #   > false
     def self.ingest_hold?(pid)
-      WFS.get_workflow_status(REPO, pid, 'accessionWF', 'sdr-ingest-transfer') == 'hold'
+      Dor::Config.workflow.client.get_workflow_status(REPO, pid, 'accessionWF', 'sdr-ingest-transfer') == 'hold'
     end
 
     # Check if the object is submitted
@@ -519,7 +517,7 @@ module Assembly
     #   Assembly::Utils.is_submitted?('druid:oo000oo0001')
     #   > false
     def self.is_submitted?(pid)
-      WFS.get_lifecycle(REPO, pid, 'submitted').nil?
+      Dor::Config.workflow.client.get_lifecycle(REPO, pid, 'submitted').nil?
     end
 
     # Check if the updates are allowed on the object
@@ -570,7 +568,7 @@ module Assembly
           workflows.each do |workflow, steps|
             steps.each do |step|
               puts "Updating #{workflow}:#{step} to #{state}"
-              Dor::WorkflowService.update_workflow_status 'dor', druid, workflow, step, state
+              Dor::Config.workflow.client.update_workflow_status 'dor', druid, workflow, step, state
             end
           end
         rescue Exception => e
@@ -587,14 +585,14 @@ module Assembly
     # Example:
     #   Assembly::Utils.read_druids_from_file('download.csv') # ['druid:xxxxx', 'druid:yyyyy']
     def self.read_druids_from_file(csv_filename)
-      rows = CsvMapper.import(csv_filename) do read_attributes_from_file end
-      druids = []
-      rows.each do |row|
-        druid = row.druid
+      return to_enum(:read_druids_from_file, csv_filename) unless block_given?
+
+      CSV.foreach(csv_filename, :headers => true) do |row|
+        druid = row['druid']
         druid = "druid:#{druid}" unless druid.include?('druid:')
-        druids << druid
+
+        yield druid
       end
-      druids
     end
 
     # Get a list of druids that have errored out in a particular workflow and step
@@ -608,7 +606,7 @@ module Assembly
     # result=Assembly::Utils.get_errored_objects_for_workstep('accessionWF','content-metadata','Project : Revs')
     # => {"druid:qd556jq0580"=>"druid:qd556jq0580 - Item error; caused by #<Rubydora::FedoraInvalidRequest: Error modifying datastream contentMetadata for druid:qd556jq0580. See logger for details>"}
     def self.get_errored_objects_for_workstep(workflow, step, tag = '')
-      result = Dor::WorkflowService.get_errored_objects_for_workstep workflow, step, 'dor'
+      result = Dor::Config.workflow.client.get_errored_objects_for_workstep workflow, step, 'dor'
       return result if tag == ''
       filtered_result = {}
       result.each do |druid, error|
