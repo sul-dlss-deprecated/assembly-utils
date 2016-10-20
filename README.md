@@ -49,6 +49,7 @@ manipulate DOR objects for assembly and accessioning.
 *   1.2.8 add a new constant for technical metadata filename
 *   1.4.1-2 update gems and fix typos
 *   1.4.6 rubocop fixes, and other refactoring
+*   1.5.0 relax dependency pinning to support rails 5, and dor-workflow-service
 
 ## Running tests
 
