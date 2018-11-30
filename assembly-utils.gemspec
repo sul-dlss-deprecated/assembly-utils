@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'nokogiri'
   s.add_dependency 'druid-tools', '>= 0.2.6'
 
-  s.add_dependency 'dor-services', '~> 5.5'
+  s.add_dependency 'dor-services', '< 7.0', '>= 5.5'
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 3.1'
