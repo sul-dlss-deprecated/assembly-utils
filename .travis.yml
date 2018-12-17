@@ -6,4 +6,4 @@ rvm:
   - 2.5.3
 
 before_install:
-  - gem install bundler 
+  - gem install bundler
